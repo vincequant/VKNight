@@ -12,7 +12,7 @@ import ETHDisplay from '@/components/ETHDisplay';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei, formatWeiCompact } from '@/utils/ethereum';
-import { saveCharacter as saveCharacterToStorage, deserializeCharacter } from '@/utils/characterStorage';
+import { saveCharacter as saveCharacterToStorage, deserializeCharacter, loadCharacterWithCloud } from '@/utils/characterStorage';
 
 
 
@@ -68,44 +68,40 @@ function GameContent() {
     setCurrentStage(stage);
     
     // Initialize character
-    const savedCharacter = localStorage.getItem(`character_${user}`);
-    let char: Character;
-    
-    if (savedCharacter) {
-      try {
-        char = migrateCharacterData(deserializeCharacter(savedCharacter));
-      } catch {
-        // Fallback for old format
-        char = migrateCharacterData(JSON.parse(savedCharacter));
-      }
-    } else {
-      // Create new character
-      char = {
-        id: user,
-        type: user as 'josh' | 'abby',
-        level: 1,
-        experience: 0,
-        expToNextLevel: 100,
-        eth: ethToWei(1),
-        hp: user === 'josh' ? 120 : 100,
-        maxHp: user === 'josh' ? 120 : 100,
-        attack: user === 'josh' ? 25 : 20,
-        defense: user === 'josh' ? 15 : 10,
-        baseHp: user === 'josh' ? 120 : 100,
-        baseAttack: user === 'josh' ? 25 : 20,
-        baseDefense: user === 'josh' ? 15 : 10,
-        stagesCleared: []
-      };
+    const initCharacter = async () => {
+      let char = await loadCharacterWithCloud(user);
       
-      // Show intro story
-      const introStory = STORY_SEGMENTS.find(s => s.id === `game-start-${user}`);
-      if (introStory) {
-        setShowStory(introStory);
+      if (!char) {
+        // Create new character
+        char = {
+          id: user,
+          type: user as 'josh' | 'abby',
+          level: 1,
+          experience: 0,
+          expToNextLevel: 100,
+          eth: ethToWei(1),
+          hp: user === 'josh' ? 120 : 100,
+          maxHp: user === 'josh' ? 120 : 100,
+          attack: user === 'josh' ? 25 : 20,
+          defense: user === 'josh' ? 15 : 10,
+          baseHp: user === 'josh' ? 120 : 100,
+          baseAttack: user === 'josh' ? 25 : 20,
+          baseDefense: user === 'josh' ? 15 : 10,
+          stagesCleared: []
+        };
+        
+        // Show intro story
+        const introStory = STORY_SEGMENTS.find(s => s.id === `game-start-${user}`);
+        if (introStory) {
+          setShowStory(introStory);
+        }
       }
-    }
+      
+      const calculatedChar = calculateCharacterStats(char);
+      setCharacter(calculatedChar);
+    };
     
-    const calculatedChar = calculateCharacterStats(char);
-    setCharacter(calculatedChar);
+    initCharacter();
     
     // Set first enemy
     if (stage.enemies.length > 0) {
@@ -388,8 +384,8 @@ function GameContent() {
     });
   };
   
-  const saveCharacter = (char: Character) => {
-    saveCharacterToStorage(char);
+  const saveCharacter = async (char: Character) => {
+    await saveCharacterToStorage(char);
   };
 
   const adjustDifficulty = () => {

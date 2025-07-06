@@ -7,9 +7,10 @@ import { getUnlockedStages } from '@/data/stages';
 import { calculateCharacterStats } from '@/types/game';
 import { soundManager } from '@/lib/sounds';
 import ETHDisplay from '@/components/ETHDisplay';
+import CloudSyncIndicator from '@/components/CloudSyncIndicator';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei } from '@/utils/ethereum';
-import { deserializeCharacter } from '@/utils/characterStorage';
+import { deserializeCharacter, loadCharacterWithCloud } from '@/utils/characterStorage';
 
 export default function HubPage() {
   const [character, setCharacter] = useState<Character | null>(null);
@@ -19,22 +20,14 @@ export default function HubPage() {
 
   useEffect(() => {
     // Load character data
-    const loadCharacter = () => {
+    const loadCharacterData = async () => {
       // Check if there's saved character data
       const user = localStorage.getItem('currentUser') || 'josh';
-      const savedCharacter = localStorage.getItem(`character_${user}`);
       
-      let character: Character;
+      // Try to load from cloud first, then fall back to localStorage
+      let character = await loadCharacterWithCloud(user);
       
-      if (savedCharacter) {
-        // Load and migrate existing character
-        try {
-          character = migrateCharacterData(deserializeCharacter(savedCharacter));
-        } catch {
-          // Fallback for old format
-          character = migrateCharacterData(JSON.parse(savedCharacter));
-        }
-      } else {
+      if (!character) {
         // Create new character
         character = {
           id: '1',
@@ -62,7 +55,7 @@ export default function HubPage() {
       setAvailableStages(unlockedStages);
     };
 
-    loadCharacter();
+    loadCharacterData();
   }, []);
 
   const areas = ['森林', '山脉', '火山', '地下城', '魔界'];
@@ -150,6 +143,7 @@ export default function HubPage() {
             {/* Resources */}
             <div className="flex items-center gap-6">
               <ETHDisplay amount={character.eth} />
+              <CloudSyncIndicator />
               
               {/* Action Buttons */}
               <div className="flex gap-2">

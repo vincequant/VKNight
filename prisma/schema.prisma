@@ -3,29 +3,29 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
   id            String        @id @default(cuid())
-  name          String
+  deviceId      String        @unique
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
-  character     Character?
+  characters    Character[]
   purchases     Purchase[]
   achievements  Achievement[]
 }
 
 model Character {
   id            String        @id @default(cuid())
-  userId        String        @unique
+  userId        String
   type          String        // 'josh' or 'abby'
   level         Int           @default(1)
   experience    Int           @default(0)
   expToNextLevel Int          @default(100)
-  gold          Int           @default(100)
+  eth           String        // Store bigint as string
   
   // Base stats
   baseHp        Int           @default(100)
@@ -51,14 +51,16 @@ model Character {
   
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  
+  @@unique([userId, type])
 }
 
 model Equipment {
   id            String        @id @default(cuid())
   name          String
   type          String        // 'weapon', 'armor', 'shield'
-  tier          Int           // 1-5 for quality
-  price         Int
+  tier          Int           // 1-7 for quality
+  price         String        // Store bigint as string
   levelRequirement Int       @default(1)
   
   // Stat bonuses
@@ -85,7 +87,7 @@ model Stage {
   difficulty    Int           // 1-10
   levelRequirement Int
   enemies       String        // JSON array of enemy configurations
-  goldReward    Int
+  ethReward     String        // Store bigint as string
   expReward     Int
   description   String
   icon          String
@@ -100,7 +102,7 @@ model Purchase {
   itemId        String
   itemName      String
   itemType      String
-  price         Int
+  price         String        // Store bigint as string
   
   user          User          @relation(fields: [userId], references: [id])
   createdAt     DateTime      @default(now())
