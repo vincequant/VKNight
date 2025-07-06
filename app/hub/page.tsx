@@ -81,9 +81,8 @@ export default function HubPage() {
     }
     
     soundManager.play('buttonClick');
-    // Save selected stage and navigate to game
-    localStorage.setItem('selectedStage', JSON.stringify(stage));
-    window.location.href = '/game';
+    // Navigate to game with stage parameter
+    window.location.href = `/game?stage=${stage.id}`;
   };
 
   const handleEquipment = () => {

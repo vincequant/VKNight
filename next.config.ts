@@ -13,8 +13,6 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  // Optimize for production
-  swcMinify: true,
 };
 
 export default nextConfig;
