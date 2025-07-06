@@ -20,8 +20,8 @@ export default function CharacterAvatar({ character, size = 'md', className = ''
   
   // Use character images
   const imagePath = character === 'josh' 
-    ? '/images/characters/josh/base/josh_knight.png'
-    : '/images/characters/abby_placeholder.svg';
+    ? '/images/characters/josh/josh_knight.png'
+    : '/images/characters/abby/abby_archer.png';
   
   // Fallback to emoji if no image
   if (!imagePath) {
