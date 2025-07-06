@@ -8,6 +8,7 @@ import { calculateCharacterStats } from '@/types/game';
 import { soundManager } from '@/lib/sounds';
 import ETHDisplay from '@/components/ETHDisplay';
 import CloudSyncIndicator from '@/components/CloudSyncIndicator';
+import CharacterAvatar from '@/components/CharacterAvatar';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei } from '@/utils/ethereum';
 import { deserializeCharacter, loadCharacterWithCloud } from '@/utils/characterStorage';
@@ -129,7 +130,7 @@ export default function HubPage() {
               onClick={() => setShowCharacterPanel(!showCharacterPanel)}
               className="flex items-center gap-4 bg-gray-800/80 rounded-lg px-4 py-2 cursor-pointer border border-gray-700 hover:border-yellow-600/50"
             >
-              <div className="text-4xl">{character.type === 'josh' ? '⚔️' : '🏹'}</div>
+              <CharacterAvatar character={character.type} size="md" />
               <div>
                 <div className="text-white font-bold">{character.type === 'josh' ? 'Josh' : 'Abby'}</div>
                 <div className="flex items-center gap-2">

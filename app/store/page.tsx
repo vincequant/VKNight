@@ -40,6 +40,10 @@ export default function StorePage() {
         // Fallback for old format
         char = migrateCharacterData(JSON.parse(savedCharacter));
       }
+      // Ensure character has inventory
+      if (!char.inventory) {
+        char.inventory = [];
+      }
       setCharacter(calculateCharacterStats(char));
       
       // Load owned equipment and mark which ones are owned/equipped
@@ -334,7 +338,7 @@ export default function StorePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {consumables.map((item, index) => {
               const canAfford = character.eth >= item.price;
-              const inventoryItem = character.inventory.find(inv => inv.id === item.id);
+              const inventoryItem = character.inventory?.find(inv => inv.id === item.id);
               const owned = inventoryItem ? inventoryItem.quantity : 0;
               
               return (

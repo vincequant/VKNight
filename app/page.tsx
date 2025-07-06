@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import CharacterAvatar from '@/components/CharacterAvatar';
 
 const characters = [
   { 
@@ -146,7 +147,7 @@ export default function Home() {
                           transition={{ duration: 2, repeat: Infinity }}
                           className="absolute inset-0 flex items-center justify-center"
                         >
-                          <div className="text-8xl">{character.sprite}</div>
+                          <CharacterAvatar character={character.id as 'josh' | 'abby'} size="xl" />
                         </motion.div>
                         
                         {/* HP/攻击力显示 */}

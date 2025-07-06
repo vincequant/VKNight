@@ -12,6 +12,7 @@ import { getConsumableById } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
 import PotionBar from '@/components/PotionBar';
 import MagicBreakdown from '@/components/MagicBreakdown';
+import CharacterAvatar from '@/components/CharacterAvatar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei, formatWeiCompact } from '@/utils/ethereum';
@@ -556,9 +557,9 @@ function GameContent() {
               <motion.div
                 animate={battleState.mode === 'attack' ? { x: [0, 200, 0] } : {}}
                 transition={{ duration: 0.5 }}
-                className="text-8xl mb-4"
+                className="mb-4"
               >
-                {character.type === 'josh' ? '🗡️' : '🏹'}
+                <CharacterAvatar character={character.type} size="xl" />
               </motion.div>
               
               {/* 玩家血条 */}
