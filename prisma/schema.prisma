@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  character     Character?
+  purchases     Purchase[]
+  achievements  Achievement[]
+}
+
+model Character {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  type          String        // 'josh' or 'abby'
+  level         Int           @default(1)
+  experience    Int           @default(0)
+  expToNextLevel Int          @default(100)
+  gold          Int           @default(100)
+  
+  // Base stats
+  baseHp        Int           @default(100)
+  baseAttack    Int           @default(20)
+  baseDefense   Int           @default(10)
+  
+  // Equipment IDs
+  weaponId      String?
+  armorId       String?
+  shieldId      String?
+  
+  // Progress tracking
+  currentStageId String?
+  stagesCleared  String        @default("[]") // JSON array of cleared stage IDs
+  totalEnemiesDefeated Int    @default(0)
+  totalQuestionsAnswered Int   @default(0)
+  totalCorrectAnswers Int     @default(0)
+  
+  user          User          @relation(fields: [userId], references: [id])
+  weapon        Equipment?    @relation("CharacterWeapon", fields: [weaponId], references: [id])
+  armor         Equipment?    @relation("CharacterArmor", fields: [armorId], references: [id])
+  shield        Equipment?    @relation("CharacterShield", fields: [shieldId], references: [id])
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Equipment {
+  id            String        @id @default(cuid())
+  name          String
+  type          String        // 'weapon', 'armor', 'shield'
+  tier          Int           // 1-5 for quality
+  price         Int
+  levelRequirement Int       @default(1)
+  
+  // Stat bonuses
+  hpBonus       Int           @default(0)
+  attackBonus   Int           @default(0)
+  defenseBonus  Int           @default(0)
+  
+  // Visual
+  icon          String        // emoji or image path
+  description   String
+  
+  // Relations
+  charactersWithWeapon Character[] @relation("CharacterWeapon")
+  charactersWithArmor  Character[] @relation("CharacterArmor")
+  charactersWithShield Character[] @relation("CharacterShield")
+  
+  createdAt     DateTime      @default(now())
+}
+
+model Stage {
+  id            String        @id @default(cuid())
+  name          String
+  area          String        // e.g., "森林", "沙漠", "火山"
+  difficulty    Int           // 1-10
+  levelRequirement Int
+  enemies       String        // JSON array of enemy configurations
+  goldReward    Int
+  expReward     Int
+  description   String
+  icon          String
+  order         Int           // for sorting stages
+  
+  createdAt     DateTime      @default(now())
+}
+
+model Purchase {
+  id            String        @id @default(cuid())
+  userId        String
+  itemId        String
+  itemName      String
+  itemType      String
+  price         Int
+  
+  user          User          @relation(fields: [userId], references: [id])
+  createdAt     DateTime      @default(now())
+}
+
+model Achievement {
+  id            String        @id @default(cuid())
+  userId        String
+  type          String        // e.g., "first_victory", "level_10", "perfect_streak"
+  name          String
+  description   String
+  unlocked      Boolean       @default(false)
+  
+  user          User          @relation(fields: [userId], references: [id])
+  unlockedAt    DateTime?
+  
+  @@unique([userId, type])
+}
