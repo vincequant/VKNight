@@ -8,7 +8,10 @@ import { Question, Difficulty } from '@/types';
 import { Character, Stage, Enemy as GameEnemy, calculateCharacterStats, BattleState, GameProgress } from '@/types/game';
 import { getStageById } from '@/data/stages';
 import { ACHIEVEMENTS, Achievement, STORY_SEGMENTS, StorySegment } from '@/data/story';
+import { getConsumableById } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
+import PotionBar from '@/components/PotionBar';
+import MagicBreakdown from '@/components/MagicBreakdown';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei, formatWeiCompact } from '@/utils/ethereum';
@@ -52,6 +55,8 @@ function GameContent() {
   const [showAchievement, setShowAchievement] = useState<Achievement | null>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
   const [showCombo, setShowCombo] = useState(false);
+  const [showMagicBreakdown, setShowMagicBreakdown] = useState(false);
+  const [canUseMagic, setCanUseMagic] = useState(true);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser') || 'abby';
@@ -82,12 +87,16 @@ function GameContent() {
           eth: ethToWei(1),
           hp: user === 'josh' ? 120 : 100,
           maxHp: user === 'josh' ? 120 : 100,
+          mp: user === 'josh' ? 50 : 60,
+          maxMp: user === 'josh' ? 50 : 60,
           attack: user === 'josh' ? 25 : 20,
           defense: user === 'josh' ? 15 : 10,
           baseHp: user === 'josh' ? 120 : 100,
+          baseMp: user === 'josh' ? 50 : 60,
           baseAttack: user === 'josh' ? 25 : 20,
           baseDefense: user === 'josh' ? 15 : 10,
-          stagesCleared: []
+          stagesCleared: [],
+          inventory: []
         };
         
         // Show intro story
@@ -147,6 +156,7 @@ function GameContent() {
     
     const question = QuestionGenerator.generateQuestion(randomType, actualDifficulty);
     setCurrentQuestion(question);
+    setCanUseMagic(true); // Reset magic usage for new question
   };
 
   const handleAnswer = (answer: number) => {
@@ -411,6 +421,62 @@ function GameContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questionsAnswered]);
 
+  const handleUsePotion = async (potionId: string) => {
+    if (!character || battleState.mode !== 'question') return;
+    
+    const potion = getConsumableById(potionId);
+    if (!potion) return;
+    
+    // Find item in inventory
+    const inventoryItem = character.inventory.find(item => item.id === potionId);
+    if (!inventoryItem || inventoryItem.quantity <= 0) return;
+    
+    // Apply potion effect
+    let updatedChar = { ...character };
+    
+    if (potion.effect === 'heal') {
+      const healAmount = potion.value === 999999 ? character.maxHp : potion.value;
+      updatedChar.hp = Math.min(character.maxHp, character.hp + healAmount);
+      soundManager.play('heal');
+    } else if (potion.effect === 'mana') {
+      const manaAmount = potion.value === 999999 ? character.maxMp : potion.value;
+      updatedChar.mp = Math.min(character.maxMp, character.mp + manaAmount);
+      soundManager.play('powerUp');
+    }
+    
+    // Reduce quantity
+    updatedChar.inventory = updatedChar.inventory.map(item =>
+      item.id === potionId
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
+    ).filter(item => item.quantity > 0);
+    
+    setCharacter(updatedChar);
+    await saveCharacter(updatedChar);
+  };
+
+  const handleUseMagic = () => {
+    if (!character || !currentQuestion || character.mp < 10 || !canUseMagic) return;
+    
+    // Consume MP
+    const updatedChar = {
+      ...character,
+      mp: character.mp - 10
+    };
+    setCharacter(updatedChar);
+    saveCharacter(updatedChar);
+    
+    // Show magic breakdown
+    setShowMagicBreakdown(true);
+    setCanUseMagic(false);
+    soundManager.play('magic');
+  };
+
+  const handleMagicComplete = () => {
+    setShowMagicBreakdown(false);
+    // Magic reveals the answer gradually, making it easier
+  };
+
   if (!character || !currentStage || !currentEnemy) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -506,6 +572,16 @@ function GameContent() {
                   />
                 </div>
                 <div className="text-xs text-gray-400 mt-1">HP: {character.hp}/{character.maxHp}</div>
+                
+                {/* MP Bar */}
+                <div className="bg-gray-700 rounded-full h-3 overflow-hidden mt-2">
+                  <motion.div
+                    initial={{ width: '100%' }}
+                    animate={{ width: `${(character.mp / character.maxMp) * 100}%` }}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-full"
+                  />
+                </div>
+                <div className="text-xs text-gray-400 mt-1">MP: {character.mp}/{character.maxMp}</div>
               </div>
 
               {/* 伤害显示 */}
@@ -578,6 +654,33 @@ function GameContent() {
                 <h2 className="text-3xl font-bold text-yellow-300 mb-2">
                   {currentQuestion.question}
                 </h2>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-4 mb-4">
+                <PotionBar 
+                  character={character}
+                  onUsePotion={handleUsePotion}
+                  disabled={battleState.mode !== 'question'}
+                />
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleUseMagic}
+                  disabled={character.mp < 10 || !canUseMagic || battleState.mode !== 'question'}
+                  className={`
+                    px-4 py-2 rounded-lg font-bold flex items-center gap-2
+                    ${character.mp >= 10 && canUseMagic && battleState.mode === 'question'
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white' 
+                      : 'bg-gray-700 text-gray-500'
+                    }
+                  `}
+                >
+                  <span>✨</span>
+                  <span>魔法拆解</span>
+                  <span className="text-sm">(10 MP)</span>
+                </motion.button>
               </div>
               
               <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
@@ -673,6 +776,15 @@ function GameContent() {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Magic Breakdown */}
+      {showMagicBreakdown && currentQuestion && (
+        <MagicBreakdown
+          question={currentQuestion}
+          onComplete={handleMagicComplete}
+          onCancel={() => setShowMagicBreakdown(false)}
+        />
+      )}
       
       {/* Achievement Popup */}
       <AnimatePresence>

@@ -9,11 +9,14 @@ export interface Character {
   // Calculated stats (base + equipment)
   hp: number;
   maxHp: number;
+  mp: number;
+  maxMp: number;
   attack: number;
   defense: number;
   
   // Base stats
   baseHp: number;
+  baseMp: number;
   baseAttack: number;
   baseDefense: number;
   
@@ -25,6 +28,9 @@ export interface Character {
   // Progress
   currentStageId?: string;
   stagesCleared: string[];
+  
+  // Inventory
+  inventory: InventoryItem[];
 }
 
 export interface Equipment {
@@ -41,6 +47,22 @@ export interface Equipment {
   defenseBonus: number;
   
   // Visual
+  icon: string;
+  description: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  quantity: number;
+}
+
+export interface Consumable {
+  id: string;
+  name: string;
+  type: 'potion' | 'scroll';
+  effect: 'heal' | 'mana' | 'buff';
+  value: number; // Amount of HP/MP restored or buff percentage
+  price: bigint;
   icon: string;
   description: string;
 }
@@ -94,10 +116,15 @@ export const calculateCharacterStats = (character: Character): Character => {
   
   const levelBonus = (character.level - 1) * 5;
   
+  const maxHp = character.baseHp + weaponBonus.hpBonus + armorBonus.hpBonus + shieldBonus.hpBonus + levelBonus;
+  const maxMp = character.baseMp + Math.floor(levelBonus / 2);
+  
   return {
     ...character,
-    maxHp: character.baseHp + weaponBonus.hpBonus + armorBonus.hpBonus + shieldBonus.hpBonus + levelBonus,
-    hp: character.hp || character.baseHp + weaponBonus.hpBonus + armorBonus.hpBonus + shieldBonus.hpBonus + levelBonus,
+    maxHp,
+    hp: character.hp || maxHp,
+    maxMp,
+    mp: character.mp !== undefined ? character.mp : maxMp,
     attack: character.baseAttack + weaponBonus.attackBonus + armorBonus.attackBonus + shieldBonus.attackBonus + Math.floor(levelBonus / 2),
     defense: character.baseDefense + weaponBonus.defenseBonus + armorBonus.defenseBonus + shieldBonus.defenseBonus + Math.floor(levelBonus / 3),
   };

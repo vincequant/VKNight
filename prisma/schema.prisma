@@ -29,8 +29,12 @@ model Character {
   
   // Base stats
   baseHp        Int           @default(100)
+  baseMp        Int           @default(50)
   baseAttack    Int           @default(20)
   baseDefense   Int           @default(10)
+  
+  // Inventory (JSON array of items)
+  inventory     String        @default("[]")
   
   // Equipment IDs
   weaponId      String?

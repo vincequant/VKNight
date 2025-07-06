@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { soundManager } from '@/lib/sounds';
-import { Character, Equipment, calculateCharacterStats } from '@/types/game';
+import { Character, Equipment, Consumable, calculateCharacterStats } from '@/types/game';
 import { EQUIPMENT_DATA } from '@/data/equipment';
+import { consumables, getConsumableById } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
 import { useRouter } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
@@ -19,11 +20,13 @@ interface EquipmentWithOwned extends Equipment {
 export default function StorePage() {
   const router = useRouter();
   const [character, setCharacter] = useState<Character | null>(null);
+  const [selectedTab, setSelectedTab] = useState<'equipment' | 'potions'>('equipment');
   const [selectedCategory, setSelectedCategory] = useState<'weapon' | 'armor' | 'shield'>('weapon');
   const [equipment, setEquipment] = useState<EquipmentWithOwned[]>([]);
-  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState<Equipment | null>(null);
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState<Equipment | Consumable | null>(null);
   const [showInsufficientFunds, setShowInsufficientFunds] = useState(false);
   const [showLevelRequirement, setShowLevelRequirement] = useState(false);
+  const [purchaseQuantity, setPurchaseQuantity] = useState(1);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser') || 'abby';
@@ -56,7 +59,7 @@ export default function StorePage() {
     }
   }, [router]);
 
-  const handlePurchase = (item: Equipment) => {
+  const handlePurchase = (item: Equipment | Consumable) => {
     if (!character) return;
     
     if (character.eth < item.price) {
@@ -65,37 +68,57 @@ export default function StorePage() {
       return;
     }
     
-    if (character.level < item.levelRequirement) {
+    if ('levelRequirement' in item && character.level < item.levelRequirement) {
       setShowLevelRequirement(true);
       setTimeout(() => setShowLevelRequirement(false), 2000);
       return;
     }
     
     setShowPurchaseConfirm(item);
+    setPurchaseQuantity(1);
   };
 
-  const confirmPurchase = () => {
+  const confirmPurchase = async () => {
     if (!character || !showPurchaseConfirm) return;
     
     soundManager.play('coin');
     
-    // Update character gold
-    const updatedChar = {
+    const totalPrice = 'type' in showPurchaseConfirm && showPurchaseConfirm.type === 'potion' 
+      ? showPurchaseConfirm.price * BigInt(purchaseQuantity)
+      : showPurchaseConfirm.price;
+    
+    // Update character
+    let updatedChar = {
       ...character,
-      eth: character.eth - showPurchaseConfirm.price
+      eth: character.eth - totalPrice
     };
+    
+    // If it's a consumable, add to inventory
+    if ('type' in showPurchaseConfirm && (showPurchaseConfirm.type === 'potion' || showPurchaseConfirm.type === 'scroll')) {
+      const existingItem = updatedChar.inventory.find(item => item.id === showPurchaseConfirm.id);
+      if (existingItem) {
+        updatedChar.inventory = updatedChar.inventory.map(item =>
+          item.id === showPurchaseConfirm.id
+            ? { ...item, quantity: item.quantity + purchaseQuantity }
+            : item
+        );
+      } else {
+        updatedChar.inventory.push({ id: showPurchaseConfirm.id, quantity: purchaseQuantity });
+      }
+    } else {
+      // It's equipment
+      const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${character.type}`) || '[]');
+      ownedEquipment.push(showPurchaseConfirm.id);
+      localStorage.setItem(`ownedEquipment_${character.type}`, JSON.stringify(ownedEquipment));
+      
+      // Update equipment list
+      setEquipment(equipment.map(item => 
+        item.id === showPurchaseConfirm.id ? { ...item, owned: true } : item
+      ));
+    }
+    
     setCharacter(updatedChar);
-    saveCharacter(updatedChar);
-    
-    // Add to owned equipment
-    const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${character.type}`) || '[]');
-    ownedEquipment.push(showPurchaseConfirm.id);
-    localStorage.setItem(`ownedEquipment_${character.type}`, JSON.stringify(ownedEquipment));
-    
-    // Update equipment list
-    setEquipment(equipment.map(item => 
-      item.id === showPurchaseConfirm.id ? { ...item, owned: true } : item
-    ));
+    await saveCharacter(updatedChar);
     
     soundManager.play('achievement');
     setShowPurchaseConfirm(null);
@@ -132,7 +155,7 @@ export default function StorePage() {
           </motion.button>
           
           <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
-            装备商店
+            神秘商店
           </h1>
           
           <div className="flex items-center gap-4">
@@ -144,9 +167,45 @@ export default function StorePage() {
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex gap-4 mb-8 justify-center">
-          {categories.map((category) => (
+        {/* Main Tabs */}
+        <div className="flex gap-4 mb-6 justify-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSelectedTab('equipment')}
+            className={`
+              px-8 py-3 rounded-xl font-bold flex items-center gap-2
+              ${selectedTab === 'equipment' 
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg' 
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }
+            `}
+          >
+            <span className="text-2xl">⚔️</span>
+            <span>装备</span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSelectedTab('potions')}
+            className={`
+              px-8 py-3 rounded-xl font-bold flex items-center gap-2
+              ${selectedTab === 'potions' 
+                ? 'bg-gradient-to-r from-red-500 to-blue-500 text-white shadow-lg' 
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }
+            `}
+          >
+            <span className="text-2xl">🧪</span>
+            <span>药水</span>
+          </motion.button>
+        </div>
+
+        {/* Category Tabs for Equipment */}
+        {selectedTab === 'equipment' && (
+          <div className="flex gap-4 mb-8 justify-center">
+            {categories.map((category) => (
             <motion.button
               key={category.key}
               whileHover={{ scale: 1.05 }}
@@ -163,12 +222,14 @@ export default function StorePage() {
               <span className="text-2xl">{category.icon}</span>
               <span>{category.label}</span>
             </motion.button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Equipment Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEquipment.map((item, index) => {
+        {selectedTab === 'equipment' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEquipment.map((item, index) => {
             const canAfford = character.eth >= item.price;
             const meetsLevel = character.level >= item.levelRequirement;
             const canPurchase = canAfford && meetsLevel && !item.owned;
@@ -264,8 +325,83 @@ export default function StorePage() {
                 )}
               </motion.div>
             );
-          })}
-        </div>
+            })}
+          </div>
+        )}
+        
+        {/* Potions Grid */}
+        {selectedTab === 'potions' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {consumables.map((item, index) => {
+              const canAfford = character.eth >= item.price;
+              const inventoryItem = character.inventory.find(inv => inv.id === item.id);
+              const owned = inventoryItem ? inventoryItem.quantity : 0;
+              
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-gray-800 rounded-lg p-6 border-2 border-gray-700"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-5xl">{item.icon}</div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-400">拥有</div>
+                      <div className="text-xl font-bold text-white">{owned}</div>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2">{item.name}</h3>
+                  <p className="text-gray-400 text-sm mb-4">{item.description}</p>
+                  
+                  {/* Effect */}
+                  <div className="bg-gray-900 rounded p-3 mb-4">
+                    <div className="text-sm">
+                      {item.effect === 'heal' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">恢复生命</span>
+                          <span className="text-green-400">
+                            {item.value === 999999 ? '全部' : `+${item.value}`}
+                          </span>
+                        </div>
+                      )}
+                      {item.effect === 'mana' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">恢复魔法</span>
+                          <span className="text-blue-400">
+                            {item.value === 999999 ? '全部' : `+${item.value}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Purchase Button */}
+                  <motion.button
+                    whileHover={{ scale: canAfford ? 1.05 : 1 }}
+                    whileTap={{ scale: canAfford ? 0.95 : 1 }}
+                    onClick={() => handlePurchase(item)}
+                    disabled={!canAfford}
+                    className={`
+                      w-full py-3 rounded-lg font-bold transition-all
+                      ${canAfford 
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg hover:shadow-xl' 
+                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      {formatWeiCompact(item.price)} ETH
+                      {!canAfford && <span className="text-sm">(ETH不足)</span>}
+                    </span>
+                  </motion.button>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Purchase Confirmation Modal */}
@@ -292,7 +428,38 @@ export default function StorePage() {
                   <p className="text-yellow-400">{formatWeiCompact(showPurchaseConfirm.price)} ETH</p>
                 </div>
               </div>
-              <p className="text-gray-300 mb-6">{showPurchaseConfirm.description}</p>
+              <p className="text-gray-300 mb-4">{showPurchaseConfirm.description}</p>
+              
+              {/* Quantity selector for potions */}
+              {'type' in showPurchaseConfirm && showPurchaseConfirm.type === 'potion' && (
+                <div className="mb-6">
+                  <div className="text-sm text-gray-400 mb-2">购买数量</div>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => setPurchaseQuantity(Math.max(1, purchaseQuantity - 1))}
+                      className="bg-gray-700 hover:bg-gray-600 w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                    >
+                      -
+                    </button>
+                    <span className="text-2xl font-bold text-white w-16 text-center">{purchaseQuantity}</span>
+                    <button
+                      onClick={() => {
+                        const maxAfford = Math.floor(Number(character.eth / showPurchaseConfirm.price));
+                        setPurchaseQuantity(Math.min(99, purchaseQuantity + 1, maxAfford));
+                      }}
+                      className="bg-gray-700 hover:bg-gray-600 w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="text-center mt-2">
+                    <span className="text-yellow-400 font-bold">
+                      总价: {formatWeiCompact(showPurchaseConfirm.price * BigInt(purchaseQuantity))} ETH
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowPurchaseConfirm(null)}

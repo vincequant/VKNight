@@ -38,12 +38,16 @@ export default function HubPage() {
           eth: ethToWei(1),
           hp: 100,
           maxHp: 100,
+          mp: 50,
+          maxMp: 50,
           attack: 20,
           defense: 10,
           baseHp: 100,
+          baseMp: 50,
           baseAttack: 20,
           baseDefense: 10,
-          stagesCleared: []
+          stagesCleared: [],
+          inventory: []
         };
       }
       
