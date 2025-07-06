@@ -56,17 +56,6 @@ export interface InventoryItem {
   quantity: number;
 }
 
-export interface Consumable {
-  id: string;
-  name: string;
-  type: 'potion' | 'scroll';
-  effect: 'heal' | 'mana' | 'buff';
-  value: number; // Amount of HP/MP restored or buff percentage
-  price: bigint;
-  icon: string;
-  description: string;
-}
-
 export interface Stage {
   id: string;
   name: string;

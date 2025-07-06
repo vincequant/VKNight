@@ -9,6 +9,7 @@ import { soundManager } from '@/lib/sounds';
 import ETHDisplay from '@/components/ETHDisplay';
 import CloudSyncIndicator from '@/components/CloudSyncIndicator';
 import CharacterAvatar from '@/components/CharacterAvatar';
+import WorldMap from '@/components/WorldMap';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei } from '@/utils/ethereum';
 import { deserializeCharacter, loadCharacterWithCloud } from '@/utils/characterStorage';
@@ -18,6 +19,7 @@ export default function HubPage() {
   const [availableStages, setAvailableStages] = useState<Stage[]>([]);
   const [selectedArea, setSelectedArea] = useState<string>('森林');
   const [showCharacterPanel, setShowCharacterPanel] = useState(false);
+  const [showWorldMap, setShowWorldMap] = useState(false);
 
   useEffect(() => {
     // Load character data
@@ -96,7 +98,20 @@ export default function HubPage() {
   if (!character) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative">
+    <div className="min-h-screen relative">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/images/backgrounds/game_hub.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Dark overlay for better readability */}
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(30)].map((_, i) => (
@@ -124,29 +139,31 @@ export default function HubPage() {
       <header className="relative z-10 bg-black/50 backdrop-blur-md border-b border-yellow-600/50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            {/* Character Info */}
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              onClick={() => setShowCharacterPanel(!showCharacterPanel)}
-              className="flex items-center gap-4 bg-gray-800/80 rounded-lg px-4 py-2 cursor-pointer border border-gray-700 hover:border-yellow-600/50"
-            >
-              <CharacterAvatar character={character.type} size="md" />
-              <div>
-                <div className="text-white font-bold">{character.type === 'josh' ? 'Josh' : 'Abby'}</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-yellow-400 text-sm">Lv. {character.level}</span>
-                  <div className="w-24 bg-gray-700 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full"
-                      style={{ width: `${(character.experience / character.expToNextLevel) * 100}%` }}
-                    />
+            {/* Left side - Character Info */}
+            <div className="flex items-center gap-8">
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                onClick={() => setShowCharacterPanel(!showCharacterPanel)}
+                className="flex items-center gap-4 bg-gray-800/80 rounded-lg px-4 py-2 cursor-pointer border border-gray-700 hover:border-yellow-600/50"
+              >
+                <CharacterAvatar character={character.type} size="md" />
+                <div>
+                  <div className="text-white font-bold">{character.type === 'josh' ? 'Josh' : 'Abby'}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-400 text-sm">Lv. {character.level}</span>
+                    <div className="w-24 bg-gray-700 rounded-full h-2 overflow-hidden relative">
+                      <div 
+                        className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-300 absolute inset-y-0 left-0"
+                        style={{ width: `${(character.experience / character.expToNextLevel) * 100}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
 
-            {/* Resources */}
-            <div className="flex items-center gap-6">
+            {/* Right side - Resources */}
+            <div className="flex items-center gap-4">
               <ETHDisplay amount={character.eth} />
               <CloudSyncIndicator />
               
@@ -220,28 +237,51 @@ export default function HubPage() {
 
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        {/* Area Tabs */}
-        <div className="flex justify-center gap-2 mb-8">
-          {areas.map((area) => (
-            <motion.button
-              key={area}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedArea(area)}
-              className={`px-6 py-3 rounded-lg font-bold transition-all ${
-                selectedArea === area
-                  ? `bg-gradient-to-r ${areaColors[area as keyof typeof areaColors]} text-white shadow-lg`
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
-              }`}
-            >
-              {area}
-            </motion.button>
-          ))}
+        {/* Map Toggle Button */}
+        <div className="flex justify-center mb-6">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowWorldMap(!showWorldMap)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-3 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg"
+          >
+            <span className="text-xl">🗺️</span>
+            {showWorldMap ? '关闭世界地图' : '查看世界地图'}
+          </motion.button>
         </div>
 
-        {/* Stage Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {availableStages
+        {/* World Map or Area Tabs */}
+        {showWorldMap ? (
+          <WorldMap
+            availableStages={availableStages}
+            onStageSelect={handleStageSelect}
+            clearedStages={character.stagesCleared}
+            className="mb-8"
+          />
+        ) : (
+          <>
+            {/* Area Tabs */}
+            <div className="flex justify-center gap-2 mb-8">
+              {areas.map((area) => (
+                <motion.button
+                  key={area}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedArea(area)}
+                  className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                    selectedArea === area
+                      ? `bg-gradient-to-r ${areaColors[area as keyof typeof areaColors]} text-white shadow-lg`
+                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {area}
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Stage Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {availableStages
             .filter(stage => stage.area === selectedArea)
             .map((stage, index) => (
               <motion.div
@@ -317,7 +357,9 @@ export default function HubPage() {
                 )}
               </motion.div>
             ))}
-        </div>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

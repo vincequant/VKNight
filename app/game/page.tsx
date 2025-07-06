@@ -8,10 +8,7 @@ import { Question, Difficulty } from '@/types';
 import { Character, Stage, Enemy as GameEnemy, calculateCharacterStats, BattleState, GameProgress } from '@/types/game';
 import { getStageById } from '@/data/stages';
 import { ACHIEVEMENTS, Achievement, STORY_SEGMENTS, StorySegment } from '@/data/story';
-import { getConsumableById } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
-import PotionBar from '@/components/PotionBar';
-import MagicBreakdown from '@/components/MagicBreakdown';
 import CharacterAvatar from '@/components/CharacterAvatar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
@@ -56,8 +53,6 @@ function GameContent() {
   const [showAchievement, setShowAchievement] = useState<Achievement | null>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
   const [showCombo, setShowCombo] = useState(false);
-  const [showMagicBreakdown, setShowMagicBreakdown] = useState(false);
-  const [canUseMagic, setCanUseMagic] = useState(true);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser') || 'abby';
@@ -88,16 +83,16 @@ function GameContent() {
           eth: ethToWei(1),
           hp: user === 'josh' ? 120 : 100,
           maxHp: user === 'josh' ? 120 : 100,
-          mp: user === 'josh' ? 50 : 60,
-          maxMp: user === 'josh' ? 50 : 60,
+          mp: 0,
+          maxMp: 0,
           attack: user === 'josh' ? 25 : 20,
           defense: user === 'josh' ? 15 : 10,
           baseHp: user === 'josh' ? 120 : 100,
-          baseMp: user === 'josh' ? 50 : 60,
+          baseMp: 0,
           baseAttack: user === 'josh' ? 25 : 20,
           baseDefense: user === 'josh' ? 15 : 10,
           stagesCleared: [],
-          inventory: []
+          inventory: [] // 确保inventory已初始化
         };
         
         // Show intro story
@@ -107,57 +102,100 @@ function GameContent() {
         }
       }
       
+      // 确保inventory存在
+      if (!char.inventory) {
+        char.inventory = [];
+      }
+      
       const calculatedChar = calculateCharacterStats(char);
       setCharacter(calculatedChar);
+      
+      // Set first enemy after character is loaded
+      if (stage.enemies.length > 0) {
+        setCurrentEnemy({ ...stage.enemies[0] });
+      }
+      
+      // Load progress
+      const savedProgress = localStorage.getItem('gameProgress');
+      if (savedProgress) {
+        setGameProgress(JSON.parse(savedProgress));
+      }
+      
+      // Load achievements
+      const savedAchievements = localStorage.getItem('unlockedAchievements');
+      if (savedAchievements) {
+        setUnlockedAchievements(JSON.parse(savedAchievements));
+      }
+      
+      // Generate question after everything is loaded
+      // Pass user and difficulty directly since state might not be updated yet
+      setTimeout(() => {
+        generateNewQuestionForUser(user, userDifficulty);
+      }, 100);
     };
     
     initCharacter();
-    
-    // Set first enemy
-    if (stage.enemies.length > 0) {
-      setCurrentEnemy({ ...stage.enemies[0] });
-    }
-    
-    // Load progress
-    const savedProgress = localStorage.getItem('gameProgress');
-    if (savedProgress) {
-      setGameProgress(JSON.parse(savedProgress));
-    }
-    
-    // Load achievements
-    const savedAchievements = localStorage.getItem('unlockedAchievements');
-    if (savedAchievements) {
-      setUnlockedAchievements(JSON.parse(savedAchievements));
-    }
-    
-    generateNewQuestion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const generateNewQuestionForUser = (user: string, difficultyOverride?: Difficulty) => {
+    try {
+      let types: ('addition' | 'subtraction' | 'multiplication' | 'division')[];
+      
+      // 根据基础难度决定题目类型
+      const baseDifficulty = difficultyOverride || difficulty;
+      if (baseDifficulty === 'EASY' || baseDifficulty === 'MEDIUM') {
+        types = ['addition', 'subtraction'];
+      } else {
+        types = ['addition', 'subtraction', 'multiplication', 'division'];
+      }
+      
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      
+      // Abby的难度自动降低一级
+      let actualDifficulty = baseDifficulty;
+      if (user === 'abby') {
+        const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
+        const currentIndex = difficulties.indexOf(baseDifficulty);
+        actualDifficulty = currentIndex > 0 ? difficulties[currentIndex - 1] : difficulties[0];
+      }
+      
+      // 直接调用对应的方法，避免可能的方法名问题
+      let question: Question;
+      switch (randomType) {
+        case 'addition':
+          question = QuestionGenerator.generateAddition(actualDifficulty);
+          break;
+        case 'subtraction':
+          question = QuestionGenerator.generateSubtraction(actualDifficulty);
+          break;
+        case 'multiplication':
+          question = QuestionGenerator.generateMultiplication(actualDifficulty);
+          break;
+        case 'division':
+          question = QuestionGenerator.generateDivision(actualDifficulty);
+          break;
+      }
+      
+      setCurrentQuestion(question);
+    } catch (error) {
+      console.error('Error generating question:', error);
+      // 生成一个简单的备用题目
+      const fallbackQuestion: Question = {
+        id: Math.random().toString(36).substring(2, 15),
+        type: 'addition',
+        difficulty: 'EASY',
+        question: '5 + 3 = ?',
+        answer: 8,
+        options: [6, 7, 8, 9]
+      };
+      setCurrentQuestion(fallbackQuestion);
+    }
+  };
+
   const generateNewQuestion = () => {
-    let types: ('addition' | 'subtraction' | 'multiplication' | 'division')[];
-    
-    // 根据基础难度决定题目类型
-    const baseDifficulty = difficulty;
-    if (baseDifficulty === 'EASY' || baseDifficulty === 'MEDIUM') {
-      types = ['addition', 'subtraction'];
-    } else {
-      types = ['addition', 'subtraction', 'multiplication', 'division'];
-    }
-    
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    
-    // Abby的难度自动降低一级
-    let actualDifficulty = difficulty;
-    if (currentUser === 'abby') {
-      const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
-      const currentIndex = difficulties.indexOf(difficulty);
-      actualDifficulty = currentIndex > 0 ? difficulties[currentIndex - 1] : difficulties[0];
-    }
-    
-    const question = QuestionGenerator.generateQuestion(randomType, actualDifficulty);
-    setCurrentQuestion(question);
-    setCanUseMagic(true); // Reset magic usage for new question
+    if (!currentUser) return;
+    generateNewQuestionForUser(currentUser);
   };
 
   const handleAnswer = (answer: number) => {
@@ -422,61 +460,6 @@ function GameContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questionsAnswered]);
 
-  const handleUsePotion = async (potionId: string) => {
-    if (!character || battleState.mode !== 'question') return;
-    
-    const potion = getConsumableById(potionId);
-    if (!potion) return;
-    
-    // Find item in inventory
-    const inventoryItem = character.inventory.find(item => item.id === potionId);
-    if (!inventoryItem || inventoryItem.quantity <= 0) return;
-    
-    // Apply potion effect
-    let updatedChar = { ...character };
-    
-    if (potion.effect === 'heal') {
-      const healAmount = potion.value === 999999 ? character.maxHp : potion.value;
-      updatedChar.hp = Math.min(character.maxHp, character.hp + healAmount);
-      soundManager.play('heal');
-    } else if (potion.effect === 'mana') {
-      const manaAmount = potion.value === 999999 ? character.maxMp : potion.value;
-      updatedChar.mp = Math.min(character.maxMp, character.mp + manaAmount);
-      soundManager.play('powerUp');
-    }
-    
-    // Reduce quantity
-    updatedChar.inventory = updatedChar.inventory.map(item =>
-      item.id === potionId
-        ? { ...item, quantity: item.quantity - 1 }
-        : item
-    ).filter(item => item.quantity > 0);
-    
-    setCharacter(updatedChar);
-    await saveCharacter(updatedChar);
-  };
-
-  const handleUseMagic = () => {
-    if (!character || !currentQuestion || character.mp < 10 || !canUseMagic) return;
-    
-    // Consume MP
-    const updatedChar = {
-      ...character,
-      mp: character.mp - 10
-    };
-    setCharacter(updatedChar);
-    saveCharacter(updatedChar);
-    
-    // Show magic breakdown
-    setShowMagicBreakdown(true);
-    setCanUseMagic(false);
-    soundManager.play('magic');
-  };
-
-  const handleMagicComplete = () => {
-    setShowMagicBreakdown(false);
-    // Magic reveals the answer gradually, making it easier
-  };
 
   if (!character || !currentStage || !currentEnemy) {
     return (
@@ -486,13 +469,34 @@ function GameContent() {
     );
   }
   
+  // 根据关卡区域选择背景
+  const getBackgroundImage = () => {
+    switch (currentStage.area) {
+      case '森林':
+        return '/images/backgrounds/forest_arena.png';
+      case '火山':
+        return '/images/backgrounds/volcano_arena.png';
+      case '地下城':
+      case '魔界':
+        return '/images/backgrounds/cave_arena.png';
+      default:
+        return '/images/backgrounds/forest_arena.png';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-      {/* 地下城背景 */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,.02) 50px, rgba(255,255,255,.02) 100px)`,
-        }}></div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Dynamic Background */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${getBackgroundImage()})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       <div className="relative z-10 h-screen flex flex-col">
@@ -516,9 +520,9 @@ function GameContent() {
               
               <div className="flex items-center gap-2">
                 <span className="text-yellow-400">Lv.{character.level}</span>
-                <div className="w-32 bg-gray-700 rounded-full h-2">
+                <div className="w-32 bg-gray-700 rounded-full h-2 overflow-hidden relative">
                   <motion.div
-                    className="bg-blue-500 h-full rounded-full"
+                    className="bg-blue-500 h-full rounded-full transition-all duration-300 absolute inset-y-0 left-0"
                     initial={{ width: 0 }}
                     animate={{ width: `${(character.experience / character.expToNextLevel) * 100}%` }}
                   />
@@ -573,16 +577,6 @@ function GameContent() {
                   />
                 </div>
                 <div className="text-xs text-gray-400 mt-1">HP: {character.hp}/{character.maxHp}</div>
-                
-                {/* MP Bar */}
-                <div className="bg-gray-700 rounded-full h-3 overflow-hidden mt-2">
-                  <motion.div
-                    initial={{ width: '100%' }}
-                    animate={{ width: `${(character.mp / character.maxMp) * 100}%` }}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-full"
-                  />
-                </div>
-                <div className="text-xs text-gray-400 mt-1">MP: {character.mp}/{character.maxMp}</div>
               </div>
 
               {/* 伤害显示 */}
@@ -655,33 +649,6 @@ function GameContent() {
                 <h2 className="text-3xl font-bold text-yellow-300 mb-2">
                   {currentQuestion.question}
                 </h2>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex justify-center gap-4 mb-4">
-                <PotionBar 
-                  character={character}
-                  onUsePotion={handleUsePotion}
-                  disabled={battleState.mode !== 'question'}
-                />
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleUseMagic}
-                  disabled={character.mp < 10 || !canUseMagic || battleState.mode !== 'question'}
-                  className={`
-                    px-4 py-2 rounded-lg font-bold flex items-center gap-2
-                    ${character.mp >= 10 && canUseMagic && battleState.mode === 'question'
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white' 
-                      : 'bg-gray-700 text-gray-500'
-                    }
-                  `}
-                >
-                  <span>✨</span>
-                  <span>魔法拆解</span>
-                  <span className="text-sm">(10 MP)</span>
-                </motion.button>
               </div>
               
               <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
@@ -777,15 +744,6 @@ function GameContent() {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Magic Breakdown */}
-      {showMagicBreakdown && currentQuestion && (
-        <MagicBreakdown
-          question={currentQuestion}
-          onComplete={handleMagicComplete}
-          onCancel={() => setShowMagicBreakdown(false)}
-        />
-      )}
       
       {/* Achievement Popup */}
       <AnimatePresence>

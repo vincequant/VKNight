@@ -36,13 +36,13 @@ export function formatWeiCompact(wei: bigint): string {
   } else if (eth >= 10) {
     return eth.toFixed(1);
   } else if (eth >= 1) {
-    return eth.toFixed(2);
+    return eth.toFixed(1);  // 改为1位小数
   } else if (eth >= 0.1) {
-    return eth.toFixed(3);
+    return eth.toFixed(1);  // 改为1位小数
   } else if (eth >= 0.01) {
-    return eth.toFixed(4);
+    return eth.toFixed(2);  // 改为2位小数
   } else if (eth > 0) {
-    return eth.toFixed(6);
+    return eth.toFixed(3);  // 改为3位小数
   } else {
     return '0';
   }
