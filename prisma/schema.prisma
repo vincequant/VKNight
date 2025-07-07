@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -16,6 +16,7 @@ model User {
   characters    Character[]
   purchases     Purchase[]
   achievements  Achievement[]
+  backups       CharacterBackup[]
 }
 
 model Character {
@@ -47,6 +48,10 @@ model Character {
   totalEnemiesDefeated Int    @default(0)
   totalQuestionsAnswered Int   @default(0)
   totalCorrectAnswers Int     @default(0)
+  
+  // Owned equipment tracking
+  ownedEquipment String        @default("[]") // JSON array of owned equipment IDs
+  stagesPaidFor  String        @default("[]") // JSON array of stage IDs that have been paid for
   
   user          User          @relation(fields: [userId], references: [id])
   weapon        Equipment?    @relation("CharacterWeapon", fields: [weaponId], references: [id])
@@ -124,4 +129,17 @@ model Achievement {
   unlockedAt    DateTime?
   
   @@unique([userId, type])
+}
+
+model CharacterBackup {
+  id            String        @id @default(cuid())
+  userId        String
+  characterType String        // 'josh' or 'abby'
+  backupName    String
+  backupData    String        // JSON string of full character data
+  createdAt     DateTime      @default(now())
+  
+  user          User          @relation(fields: [userId], references: [id])
+  
+  @@index([userId, characterType])
 }

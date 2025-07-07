@@ -40,6 +40,10 @@ export async function saveCharacterToCloud(character: Character) {
     const user = await getOrCreateUser();
     if (!user) return;
     
+    // Get owned equipment from localStorage
+    const ownedEquipmentKey = `ownedEquipment_${character.type}`;
+    const ownedEquipment = JSON.parse(localStorage.getItem(ownedEquipmentKey) || '[]');
+    
     const characterData = {
       userId: user.id,
       type: character.type,
@@ -54,6 +58,9 @@ export async function saveCharacterToCloud(character: Character) {
       armorId: character.armor?.id || null,
       shieldId: character.shield?.id || null,
       stagesCleared: JSON.stringify(character.stagesCleared || []),
+      inventory: JSON.stringify(character.inventory || []),
+      ownedEquipment: JSON.stringify(ownedEquipment),
+      stagesPaidFor: JSON.stringify(character.stagesPaidFor || []),
     };
     
     await prisma.character.upsert({
@@ -109,7 +116,15 @@ export async function loadCharacterFromCloud(characterType: string): Promise<Cha
       baseAttack: dbCharacter.baseAttack,
       baseDefense: dbCharacter.baseDefense,
       stagesCleared: JSON.parse(dbCharacter.stagesCleared || '[]'),
+      inventory: JSON.parse(dbCharacter.inventory || '[]'),
+      stagesPaidFor: JSON.parse(dbCharacter.stagesPaidFor || '[]'),
     };
+    
+    // Restore owned equipment to localStorage
+    if (dbCharacter.ownedEquipment) {
+      const ownedEquipmentKey = `ownedEquipment_${characterType}`;
+      localStorage.setItem(ownedEquipmentKey, dbCharacter.ownedEquipment);
+    }
     
     if (dbCharacter.weapon) {
       character.weapon = {

@@ -10,7 +10,7 @@ import ETHDisplay from '@/components/ETHDisplay';
 import { useRouter } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { formatWeiCompact } from '@/utils/ethereum';
-import { saveCharacter, deserializeCharacter } from '@/utils/characterStorage';
+import { saveCharacter, deserializeCharacter, loadCharacterWithCloud } from '@/utils/characterStorage';
 
 interface EquipmentWithOwned extends Equipment {
   owned: boolean;
@@ -27,38 +27,49 @@ export default function StorePage() {
   const [showLevelRequirement, setShowLevelRequirement] = useState(false);
 
   useEffect(() => {
-    const user = localStorage.getItem('currentUser') || 'abby';
-    const savedCharacter = localStorage.getItem(`character_${user}`);
-    
-    if (savedCharacter) {
-      let char;
-      try {
-        char = migrateCharacterData(deserializeCharacter(savedCharacter));
-      } catch {
-        // Fallback for old format
-        char = migrateCharacterData(JSON.parse(savedCharacter));
-      }
-      // Ensure character has inventory
-      if (!char.inventory) {
-        char.inventory = [];
-      }
-      setCharacter(calculateCharacterStats(char));
+    const loadStoreData = async () => {
+      const user = localStorage.getItem('currentUser') || 'abby';
       
-      // Load owned equipment and mark which ones are owned/equipped
-      const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${user}`) || '[]');
-      const equipmentWithStatus = EQUIPMENT_DATA.map(item => ({
-        ...item,
-        owned: ownedEquipment.includes(item.id),
-        equipped: (
-          (char.weapon?.id === item.id) ||
-          (char.armor?.id === item.id) ||
-          (char.shield?.id === item.id)
-        )
-      }));
-      setEquipment(equipmentWithStatus);
-    } else {
-      router.push('/');
-    }
+      // Try to load from cloud first, then fall back to localStorage
+      let char = await loadCharacterWithCloud(user);
+      
+      if (!char) {
+        const savedCharacter = localStorage.getItem(`character_${user}`);
+        if (savedCharacter) {
+          try {
+            char = migrateCharacterData(deserializeCharacter(savedCharacter));
+          } catch {
+            // Fallback for old format
+            char = migrateCharacterData(JSON.parse(savedCharacter));
+          }
+        }
+      }
+      
+      if (char) {
+        // Ensure character has inventory
+        if (!char.inventory) {
+          char.inventory = [];
+        }
+        setCharacter(calculateCharacterStats(char));
+        
+        // Load owned equipment and mark which ones are owned/equipped
+        const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${user}`) || '[]');
+        const equipmentWithStatus = EQUIPMENT_DATA.map(item => ({
+          ...item,
+          owned: ownedEquipment.includes(item.id),
+          equipped: (
+            (char.weapon?.id === item.id) ||
+            (char.armor?.id === item.id) ||
+            (char.shield?.id === item.id)
+          )
+        }));
+        setEquipment(equipmentWithStatus);
+      } else {
+        router.push('/');
+      }
+    };
+    
+    loadStoreData();
   }, [router]);
 
   const handlePurchase = (item: Equipment | Consumable) => {
@@ -116,7 +127,7 @@ export default function StorePage() {
     }
     
     setCharacter(updatedChar);
-    await saveCharacter(updatedChar);
+    await saveCharacter(updatedChar, true); // true to create backup on purchase
     
     soundManager.play('achievement');
     setShowPurchaseConfirm(null);

@@ -1,5 +1,6 @@
 import { Character } from '@/types/game';
 import { Equipment } from '@/types/game';
+import { createBackup } from './backup';
 
 // Helper to serialize character data with bigint support
 export function serializeCharacter(character: Character): string {
@@ -22,9 +23,14 @@ export function deserializeCharacter(data: string): Character {
 }
 
 // Save character to localStorage and cloud
-export async function saveCharacter(character: Character): Promise<void> {
+export async function saveCharacter(character: Character, createBackupFlag: boolean = false): Promise<void> {
   const key = `character_${character.type}`;
   localStorage.setItem(key, serializeCharacter(character));
+  
+  // Create backup on important events
+  if (createBackupFlag) {
+    createBackup(character);
+  }
   
   // Try to save to cloud
   try {
@@ -87,7 +93,7 @@ export async function loadCharacterWithCloud(characterType: string): Promise<Cha
         }
         
         // Save to localStorage for offline access
-        saveCharacter(character);
+        localStorage.setItem(`character_${character.type}`, serializeCharacter(character));
         
         return character;
       }
