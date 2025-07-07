@@ -94,6 +94,7 @@ function GameContent() {
           baseAttack: user === 'josh' ? 25 : 20,
           baseDefense: user === 'josh' ? 15 : 10,
           stagesCleared: [],
+          stagesPaidFor: [],
           inventory: [] // 确保inventory已初始化
         };
         
@@ -104,9 +105,12 @@ function GameContent() {
         }
       }
       
-      // 确保inventory存在
+      // 确保inventory和stagesPaidFor存在
       if (!char.inventory) {
         char.inventory = [];
+      }
+      if (!char.stagesPaidFor) {
+        char.stagesPaidFor = [];
       }
       
       const calculatedChar = calculateCharacterStats(char);

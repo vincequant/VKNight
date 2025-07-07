@@ -50,8 +50,14 @@ export default function HubPage() {
           baseAttack: 20,
           baseDefense: 10,
           stagesCleared: [],
+          stagesPaidFor: [],
           inventory: []
         };
+      }
+      
+      // Ensure stagesPaidFor exists
+      if (!character.stagesPaidFor) {
+        character.stagesPaidFor = [];
       }
       
       // Check if character needs to level up
@@ -122,8 +128,13 @@ export default function HubPage() {
       return;
     }
     
+    // Check if this is a new stage that requires entrance fee
+    const needsEntranceFee = stage.entranceFee > 0n && 
+      character && 
+      !character.stagesPaidFor?.includes(stage.id);
+    
     // Check if player has enough ETH for entrance fee
-    if (character && character.eth < stage.entranceFee) {
+    if (needsEntranceFee && character && character.eth < stage.entranceFee) {
       soundManager.play('incorrect');
       alert('ETH不足！需要 ' + (Number(stage.entranceFee) / 1e18).toFixed(2) + ' ETH 才能进入此关卡。');
       return;
@@ -131,16 +142,18 @@ export default function HubPage() {
     
     soundManager.play('buttonClick');
     
-    // Deduct entrance fee from character's ETH
-    if (character) {
+    // Deduct entrance fee if needed
+    if (character && needsEntranceFee) {
       const updatedCharacter = {
         ...character,
-        eth: character.eth - stage.entranceFee
+        eth: character.eth - stage.entranceFee,
+        stagesPaidFor: [...(character.stagesPaidFor || []), stage.id]
       };
       
-      // Save the updated character data
+      // Save the updated character data with proper BigInt serialization
       const characterData = {
         ...updatedCharacter,
+        eth: updatedCharacter.eth.toString() + 'n',
         weapon: updatedCharacter.weapon?.id,
         armor: updatedCharacter.armor?.id,
         shield: updatedCharacter.shield?.id
@@ -402,7 +415,11 @@ export default function HubPage() {
                     {/* Entrance Fee */}
                     <div className="flex items-center gap-2 text-sm mb-2">
                       <span className="text-gray-400">入场费:</span>
-                      <ETHDisplay amount={stage.entranceFee} size="sm" />
+                      {character.stagesPaidFor?.includes(stage.id) ? (
+                        <span className="text-green-400">✓ 已支付</span>
+                      ) : (
+                        <ETHDisplay amount={stage.entranceFee} size="sm" />
+                      )}
                     </div>
 
                     {/* Mining Rewards */}

@@ -28,6 +28,7 @@ export interface Character {
   // Progress
   currentStageId?: string;
   stagesCleared: string[];
+  stagesPaidFor: string[]; // 已支付入场费的关卡
   
   // Inventory
   inventory: InventoryItem[];
