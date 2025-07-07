@@ -15,8 +15,18 @@ export function serializeCharacter(character: Character): string {
 // Helper to deserialize character data with bigint support
 export function deserializeCharacter(data: string): Character {
   return JSON.parse(data, (key, value) => {
+    // Only convert to BigInt if it's a string ending with 'n' AND the rest is a valid number
     if (typeof value === 'string' && value.endsWith('n')) {
-      return BigInt(value.slice(0, -1));
+      const numStr = value.slice(0, -1);
+      // Check if it's a valid number before converting
+      if (/^\d+$/.test(numStr)) {
+        try {
+          return BigInt(numStr);
+        } catch (e) {
+          // If conversion fails, return the original value
+          return value;
+        }
+      }
     }
     return value;
   });
