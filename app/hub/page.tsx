@@ -91,6 +91,10 @@ export default function HubPage() {
           baseDefense: character.baseDefense + defenseGain
         };
         
+        // Full heal after level up
+        characterToUse.hp = characterToUse.baseHp + (characterToUse.weapon?.hpBonus || 0) + 
+                           (characterToUse.armor?.hpBonus || 0) + (characterToUse.shield?.hpBonus || 0);
+        
         // Save the leveled up character
         const characterData = {
           ...characterToUse,
@@ -102,7 +106,7 @@ export default function HubPage() {
       }
       
       const calculatedCharacter = calculateCharacterStats(characterToUse);
-      calculatedCharacter.hp = calculatedCharacter.maxHp; // Full heal after level up
+      // Don't auto-heal unless we just leveled up
       setCharacter(calculatedCharacter);
       
       // Get available stages
@@ -239,6 +243,19 @@ export default function HubPage() {
                       />
                     </div>
                   </div>
+                  {/* HP Bar */}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-red-400 text-xs">HP</span>
+                    <div className="w-24 bg-gray-700 rounded-full h-2 overflow-hidden relative">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 absolute inset-y-0 left-0 ${
+                          character.hp <= character.maxHp * 0.3 ? 'bg-red-500' : 'bg-gradient-to-r from-red-400 to-red-600'
+                        }`}
+                        style={{ width: `${(character.hp / character.maxHp) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400">{character.hp}/{character.maxHp}</span>
+                  </div>
                 </div>
               </motion.div>
             </div>
@@ -326,6 +343,33 @@ export default function HubPage() {
 
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+        {/* Low HP Warning */}
+        {character && character.hp < character.maxHp * 0.5 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-4 flex items-center justify-between max-w-3xl mx-auto"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <p className="text-red-200 font-bold">生命值较低！</p>
+                <p className="text-red-300 text-sm">
+                  当前生命值: {character.hp}/{character.maxHp} ({Math.round((character.hp / character.maxHp) * 100)}%)
+                </p>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleShop}
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white font-bold flex items-center gap-2"
+            >
+              <span>🧪</span> 购买药水
+            </motion.button>
+          </motion.div>
+        )}
+        
         {/* Map Toggle Button */}
         <div className="flex justify-center mb-6">
           <motion.button

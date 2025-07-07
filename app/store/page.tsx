@@ -101,7 +101,9 @@ export default function StorePage() {
           if (!char.inventory) {
             char.inventory = [];
           }
-          setCharacter(calculateCharacterStats(char));
+          const calculatedChar = calculateCharacterStats(char);
+          console.log('Loaded character:', calculatedChar);
+          setCharacter(calculatedChar);
           
           // Load owned equipment and mark which ones are owned/equipped
           const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${user}`) || '[]');
@@ -179,8 +181,10 @@ export default function StorePage() {
       ));
     }
     
-    setCharacter(updatedChar);
-    await saveCharacter(updatedChar, true); // true to create backup on purchase
+    // Recalculate stats to ensure all derived properties are correct
+    const recalculatedChar = calculateCharacterStats(updatedChar);
+    setCharacter(recalculatedChar);
+    await saveCharacter(recalculatedChar, true); // true to create backup on purchase
     
     soundManager.play('achievement');
     setShowPurchaseConfirm(null);
