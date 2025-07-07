@@ -159,6 +159,9 @@ export default function Home() {
           <p className="text-sm text-gray-400">
             家长模式：长按屏幕3秒
           </p>
+          <p className="text-xs text-gray-500 mt-2">
+            v0.2.0
+          </p>
         </motion.div>
       </div>
 
