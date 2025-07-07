@@ -54,7 +54,49 @@ export default function HubPage() {
         };
       }
       
-      const calculatedCharacter = calculateCharacterStats(character);
+      // Check if character needs to level up
+      let characterToUse = character;
+      if (character.experience >= character.expToNextLevel) {
+        // Auto level up
+        let currentExp = character.experience;
+        let newLevel = character.level;
+        let expRequired = character.expToNextLevel;
+        let hpGain = 0;
+        let attackGain = 0;
+        let defenseGain = 0;
+        
+        // Handle multiple level ups
+        while (currentExp >= expRequired) {
+          currentExp = currentExp - expRequired;
+          newLevel++;
+          expRequired = 100 * newLevel * Math.floor(newLevel / 2 + 1);
+          hpGain += 10;
+          attackGain += 3;
+          defenseGain += 2;
+        }
+        
+        characterToUse = {
+          ...character,
+          level: newLevel,
+          experience: currentExp,
+          expToNextLevel: expRequired,
+          baseHp: character.baseHp + hpGain,
+          baseAttack: character.baseAttack + attackGain,
+          baseDefense: character.baseDefense + defenseGain
+        };
+        
+        // Save the leveled up character
+        const characterData = {
+          ...characterToUse,
+          weapon: characterToUse.weapon?.id,
+          armor: characterToUse.armor?.id,
+          shield: characterToUse.shield?.id
+        };
+        localStorage.setItem(`vknight_character_${characterToUse.id}`, JSON.stringify(characterData));
+      }
+      
+      const calculatedCharacter = calculateCharacterStats(characterToUse);
+      calculatedCharacter.hp = calculatedCharacter.maxHp; // Full heal after level up
       setCharacter(calculatedCharacter);
       
       // Get available stages
@@ -74,13 +116,39 @@ export default function HubPage() {
     '魔界': 'from-black to-red-900'
   };
 
-  const handleStageSelect = (stage: Stage) => {
+  const handleStageSelect = async (stage: Stage) => {
     if (stage.locked) {
       soundManager.play('incorrect');
       return;
     }
     
+    // Check if player has enough ETH for entrance fee
+    if (character && character.eth < stage.entranceFee) {
+      soundManager.play('incorrect');
+      alert('ETH不足！需要 ' + (Number(stage.entranceFee) / 1e18).toFixed(2) + ' ETH 才能进入此关卡。');
+      return;
+    }
+    
     soundManager.play('buttonClick');
+    
+    // Deduct entrance fee from character's ETH
+    if (character) {
+      const updatedCharacter = {
+        ...character,
+        eth: character.eth - stage.entranceFee
+      };
+      
+      // Save the updated character data
+      const characterData = {
+        ...updatedCharacter,
+        weapon: updatedCharacter.weapon?.id,
+        armor: updatedCharacter.armor?.id,
+        shield: updatedCharacter.shield?.id
+      };
+      
+      localStorage.setItem(`vknight_character_${updatedCharacter.id}`, JSON.stringify(characterData));
+    }
+    
     // Navigate to game with stage parameter
     window.location.href = `/game?stage=${stage.id}`;
   };
@@ -213,8 +281,12 @@ export default function HubPage() {
             <h3 className="text-xl font-bold text-yellow-400 mb-4">角色属性</h3>
             <div className="space-y-3 text-white">
               <div className="flex justify-between">
+                <span>🏆 等级</span>
+                <span className="font-bold">{character.level}</span>
+              </div>
+              <div className="flex justify-between">
                 <span>❤️ 生命值</span>
-                <span className="font-bold">{character.maxHp}</span>
+                <span className="font-bold">{character.hp} / {character.maxHp}</span>
               </div>
               <div className="flex justify-between">
                 <span>⚔️ 攻击力</span>
@@ -224,10 +296,14 @@ export default function HubPage() {
                 <span>🛡️ 防御力</span>
                 <span className="font-bold">{character.defense}</span>
               </div>
+              <div className="flex justify-between">
+                <span>⭐ 经验值</span>
+                <span className="font-bold">{character.experience} / {character.expToNextLevel}</span>
+              </div>
               <hr className="border-gray-700" />
               <div className="text-sm text-gray-400">
                 <p>🗡️ 武器: {character.weapon?.name || '无'}</p>
-                <p>🛡️ 护甲: {character.armor?.name || '无'}</p>
+                <p>🦺 护甲: {character.armor?.name || '无'}</p>
                 <p>🛡️ 盾牌: {character.shield?.name || '无'}</p>
               </div>
             </div>
@@ -323,7 +399,14 @@ export default function HubPage() {
                       </span>
                     </div>
 
-                    {/* Rewards */}
+                    {/* Entrance Fee */}
+                    <div className="flex items-center gap-2 text-sm mb-2">
+                      <span className="text-gray-400">入场费:</span>
+                      <ETHDisplay amount={stage.entranceFee} size="sm" />
+                    </div>
+
+                    {/* Mining Rewards */}
+                    <div className="text-gray-400 text-sm mb-1">挖矿奖励:</div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <ETHDisplay amount={stage.ethReward} size="sm" />

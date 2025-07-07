@@ -65,6 +65,7 @@ export interface Stage {
   enemies: Enemy[];
   ethReward: bigint;  // in wei
   expReward: number;
+  entranceFee: bigint;  // ETH required to enter stage
   description: string;
   icon: string;
   order: number;

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Stage } from '@/types/game';
+import ETHDisplay from '@/components/ETHDisplay';
 
 interface WorldMapProps {
   availableStages: Stage[];
@@ -229,6 +230,10 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
                         <div className="flex items-center gap-4 mt-2">
                           <span className="text-yellow-400">难度: {'⭐'.repeat(stage.difficulty)}</span>
                           <span className="text-blue-400">需要等级: {stage.levelRequirement}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-gray-400">入场费:</span>
+                          <ETHDisplay amount={stage.entranceFee} size="sm" />
                         </div>
                       </div>
                       <div className="text-4xl">{stage.icon}</div>

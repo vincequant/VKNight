@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { soundManager } from '@/lib/sounds';
 import { Character, Equipment, calculateCharacterStats } from '@/types/game';
 import { EQUIPMENT_DATA } from '@/data/equipment';
+import { consumables, Consumable } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
 import { useRouter } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
@@ -19,9 +20,9 @@ interface EquipmentWithOwned extends Equipment {
 export default function StorePage() {
   const router = useRouter();
   const [character, setCharacter] = useState<Character | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<'weapon' | 'armor' | 'shield'>('weapon');
+  const [selectedCategory, setSelectedCategory] = useState<'weapon' | 'armor' | 'shield' | 'consumable'>('weapon');
   const [equipment, setEquipment] = useState<EquipmentWithOwned[]>([]);
-  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState<Equipment | null>(null);
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState<Equipment | Consumable | null>(null);
   const [showInsufficientFunds, setShowInsufficientFunds] = useState(false);
   const [showLevelRequirement, setShowLevelRequirement] = useState(false);
 
@@ -60,7 +61,7 @@ export default function StorePage() {
     }
   }, [router]);
 
-  const handlePurchase = (item: Equipment) => {
+  const handlePurchase = (item: Equipment | Consumable) => {
     if (!character) return;
     
     if (character.eth < item.price) {
@@ -69,7 +70,7 @@ export default function StorePage() {
       return;
     }
     
-    if (item.levelRequirement && character.level < item.levelRequirement) {
+    if ('levelRequirement' in item && item.levelRequirement && character.level < item.levelRequirement) {
       setShowLevelRequirement(true);
       setTimeout(() => setShowLevelRequirement(false), 2000);
       return;
@@ -89,15 +90,30 @@ export default function StorePage() {
       eth: character.eth - showPurchaseConfirm.price
     };
     
-    // It's equipment
-    const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${character.type}`) || '[]');
-    ownedEquipment.push(showPurchaseConfirm.id);
-    localStorage.setItem(`ownedEquipment_${character.type}`, JSON.stringify(ownedEquipment));
-    
-    // Update equipment list
-    setEquipment(equipment.map(item => 
-      item.id === showPurchaseConfirm.id ? { ...item, owned: true } : item
-    ));
+    // Check if it's equipment or consumable
+    if (showPurchaseConfirm.type === 'consumable') {
+      // Handle consumable purchase
+      const newInventory = [...updatedChar.inventory];
+      const existingItem = newInventory.find(invItem => invItem.id === showPurchaseConfirm.id);
+      
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        newInventory.push({ id: showPurchaseConfirm.id, quantity: 1 });
+      }
+      
+      updatedChar = { ...updatedChar, inventory: newInventory };
+    } else {
+      // It's equipment
+      const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${character.type}`) || '[]');
+      ownedEquipment.push(showPurchaseConfirm.id);
+      localStorage.setItem(`ownedEquipment_${character.type}`, JSON.stringify(ownedEquipment));
+      
+      // Update equipment list
+      setEquipment(equipment.map(item => 
+        item.id === showPurchaseConfirm.id ? { ...item, owned: true } : item
+      ));
+    }
     
     setCharacter(updatedChar);
     await saveCharacter(updatedChar);
@@ -110,9 +126,12 @@ export default function StorePage() {
     { key: 'weapon', label: '武器', icon: '⚔️' },
     { key: 'armor', label: '护甲', icon: '🦺' },
     { key: 'shield', label: '盾牌', icon: '🔰' },
+    { key: 'consumable', label: '药水', icon: '🧪' },
   ];
 
-  const filteredEquipment = equipment.filter(item => item.type === selectedCategory);
+  const filteredEquipment = selectedCategory === 'consumable' 
+    ? [] 
+    : equipment.filter(item => item.type === selectedCategory);
 
   if (!character) {
     return (
@@ -156,7 +175,7 @@ export default function StorePage() {
               key={category.key}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedCategory(category.key as 'weapon' | 'armor' | 'shield')}
+              onClick={() => setSelectedCategory(category.key as 'weapon' | 'armor' | 'shield' | 'consumable')}
               className={`
                 px-6 py-3 rounded-xl font-bold flex items-center gap-2
                 ${selectedCategory === category.key 
@@ -172,7 +191,8 @@ export default function StorePage() {
         </div>
 
         {/* Equipment Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {selectedCategory !== 'consumable' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEquipment.map((item, index) => {
             const canAfford = character.eth >= item.price;
             const meetsLevel = character.level >= item.levelRequirement;
@@ -270,7 +290,80 @@ export default function StorePage() {
               </motion.div>
             );
             })}
-        </div>
+          </div>
+        )}
+        
+        {/* Consumables Grid */}
+        {selectedCategory === 'consumable' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {consumables.map((item, index) => {
+              const canAfford = character.eth >= item.price;
+              const currentQuantity = character.inventory.find(invItem => invItem.id === item.id)?.quantity || 0;
+              
+              return (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-gray-800 rounded-lg p-6 border-2 border-gray-700"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-5xl">{item.icon}</div>
+                    <div className="text-right">
+                      <span className="text-gray-400 text-sm">库存: {currentQuantity}/{item.stackSize}</span>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-2">{item.name}</h3>
+                  <p className="text-gray-400 text-sm mb-4">{item.description}</p>
+
+                  {/* Effect */}
+                  <div className="bg-gray-900 rounded p-3 mb-4">
+                    <div className="text-sm space-y-1">
+                      {item.effect.hp && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">恢复生命</span>
+                          <span className="text-green-400">
+                            {item.effect.percentage ? `${item.effect.hp}%` : `+${item.effect.hp}`}
+                          </span>
+                        </div>
+                      )}
+                      {item.effect.mp && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">恢复魔力</span>
+                          <span className="text-blue-400">
+                            {item.effect.percentage ? `${item.effect.mp}%` : `+${item.effect.mp}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Purchase Button */}
+                  <motion.button
+                    whileHover={{ scale: canAfford ? 1.05 : 1 }}
+                    whileTap={{ scale: canAfford ? 0.95 : 1 }}
+                    onClick={() => handlePurchase(item)}
+                    disabled={!canAfford || currentQuantity >= item.stackSize}
+                    className={`
+                      w-full py-3 rounded-lg font-bold transition-all
+                      ${canAfford && currentQuantity < item.stackSize
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg hover:shadow-xl' 
+                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      {currentQuantity >= item.stackSize ? '已达上限' : `${formatWeiCompact(item.price)} ETH`}
+                      {!canAfford && currentQuantity < item.stackSize && <span className="text-sm">(ETH不足)</span>}
+                    </span>
+                  </motion.button>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Purchase Confirmation Modal */}

@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface CharacterAvatarProps {
   character: 'josh' | 'abby';
@@ -17,14 +18,15 @@ export default function CharacterAvatar({ character, size = 'md', className = ''
   };
   
   const pixelSize = sizeMap[size];
+  const [imageError, setImageError] = useState(false);
   
   // Use character images
   const imagePath = character === 'josh' 
     ? '/images/characters/josh/josh_knight.png'
     : '/images/characters/abby/abby_archer.png';
   
-  // Fallback to emoji if no image
-  if (!imagePath) {
+  // Fallback to emoji if no image or error
+  if (!imagePath || imageError) {
     const emoji = character === 'josh' ? '🗡️' : '🏹';
     const fontSize = size === 'sm' ? 'text-2xl' : size === 'md' ? 'text-4xl' : size === 'lg' ? 'text-6xl' : 'text-8xl';
     return <span className={`${fontSize} ${className}`}>{emoji}</span>;
@@ -39,6 +41,8 @@ export default function CharacterAvatar({ character, size = 'md', className = ''
         height={pixelSize}
         className="pixelated"
         style={{ imageRendering: 'pixelated' }}
+        priority
+        onError={() => setImageError(true)}
       />
     </div>
   );

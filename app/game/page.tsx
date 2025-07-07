@@ -8,6 +8,7 @@ import { Question, Difficulty } from '@/types';
 import { Character, Stage, Enemy as GameEnemy, calculateCharacterStats, BattleState, GameProgress } from '@/types/game';
 import { getStageById } from '@/data/stages';
 import { ACHIEVEMENTS, Achievement, STORY_SEGMENTS, StorySegment } from '@/data/story';
+import { getConsumableById, Consumable } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
 import CharacterAvatar from '@/components/CharacterAvatar';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -53,6 +54,7 @@ function GameContent() {
   const [showAchievement, setShowAchievement] = useState<Achievement | null>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
   const [showCombo, setShowCombo] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser') || 'abby';
@@ -330,15 +332,31 @@ function GameContent() {
   };
   
   const handleLevelUp = (char: Character) => {
-    const newLevel = char.level + 1;
+    let newLevel = char.level;
+    let currentExp = char.experience;
+    let expRequired = char.expToNextLevel;
+    let hpGain = 0;
+    let attackGain = 0;
+    let defenseGain = 0;
+    
+    // Handle multiple level ups if experience is very high
+    while (currentExp >= expRequired) {
+      currentExp = currentExp - expRequired;
+      newLevel++;
+      expRequired = 100 * newLevel * Math.floor(newLevel / 2 + 1);
+      hpGain += 10;
+      attackGain += 3;
+      defenseGain += 2;
+    }
+    
     const levelUpChar = {
       ...char,
       level: newLevel,
-      experience: char.experience - char.expToNextLevel,
-      expToNextLevel: 100 * newLevel * Math.floor(newLevel / 2 + 1),
-      baseHp: char.baseHp + 10,
-      baseAttack: char.baseAttack + 3,
-      baseDefense: char.baseDefense + 2
+      experience: currentExp,
+      expToNextLevel: expRequired,
+      baseHp: char.baseHp + hpGain,
+      baseAttack: char.baseAttack + attackGain,
+      baseDefense: char.baseDefense + defenseGain
     };
     
     const calculatedChar = calculateCharacterStats(levelUpChar);
@@ -435,6 +453,56 @@ function GameContent() {
   
   const saveCharacter = async (char: Character) => {
     await saveCharacterToStorage(char);
+  };
+
+  const usePotion = (consumableId: string) => {
+    if (!character || battleState.mode !== 'question') return;
+    
+    const itemInInventory = character.inventory.find(item => item.id === consumableId);
+    if (!itemInInventory || itemInInventory.quantity <= 0) return;
+    
+    const consumable = getConsumableById(consumableId);
+    if (!consumable) return;
+    
+    soundManager.play('coin');
+    
+    // Apply effect
+    let newHp = character.hp;
+    let newMp = character.mp;
+    
+    if (consumable.effect.hp) {
+      if (consumable.effect.percentage) {
+        newHp = Math.min(character.maxHp, character.hp + Math.floor(character.maxHp * consumable.effect.hp / 100));
+      } else {
+        newHp = Math.min(character.maxHp, character.hp + consumable.effect.hp);
+      }
+    }
+    
+    if (consumable.effect.mp) {
+      if (consumable.effect.percentage) {
+        newMp = Math.min(character.maxMp, character.mp + Math.floor(character.maxMp * consumable.effect.mp / 100));
+      } else {
+        newMp = Math.min(character.maxMp, character.mp + consumable.effect.mp);
+      }
+    }
+    
+    // Update inventory
+    const newInventory = character.inventory.map(item => 
+      item.id === consumableId 
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
+    ).filter(item => item.quantity > 0);
+    
+    const updatedChar = {
+      ...character,
+      hp: newHp,
+      mp: newMp,
+      inventory: newInventory
+    };
+    
+    setCharacter(updatedChar);
+    saveCharacter(updatedChar);
+    setShowInventory(false);
   };
 
   const adjustDifficulty = () => {
@@ -667,6 +735,18 @@ function GameContent() {
                   </motion.button>
                 ))}
               </div>
+              
+              {/* Potion Button */}
+              <div className="mt-6 flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowInventory(!showInventory)}
+                  className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-white font-bold flex items-center gap-2"
+                >
+                  <span className="text-xl">🧪</span> 使用药水
+                </motion.button>
+              </div>
             </div>
           )}
 
@@ -766,6 +846,71 @@ function GameContent() {
                 </div>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Inventory Modal */}
+      <AnimatePresence>
+        {showInventory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowInventory(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              className="bg-gray-800 border-2 border-yellow-600 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-bold text-yellow-400 mb-4">药水背包</h3>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {character?.inventory.map((item) => {
+                  const consumable = getConsumableById(item.id);
+                  if (!consumable) return null;
+                  
+                  return (
+                    <motion.div
+                      key={item.id}
+                      whileHover={{ scale: 1.05 }}
+                      className="bg-gray-700 rounded-lg p-4 border border-gray-600"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-3xl">{consumable.icon}</span>
+                        <span className="text-gray-400 text-sm">x{item.quantity}</span>
+                      </div>
+                      <h4 className="text-white font-bold mb-1">{consumable.name}</h4>
+                      <p className="text-gray-400 text-sm mb-3">{consumable.description}</p>
+                      
+                      <button
+                        onClick={() => usePotion(item.id)}
+                        className="w-full bg-green-600 hover:bg-green-700 py-2 rounded text-white font-bold transition-colors"
+                      >
+                        使用
+                      </button>
+                    </motion.div>
+                  );
+                })}
+                
+                {(!character?.inventory || character.inventory.length === 0) && (
+                  <div className="col-span-full text-center text-gray-400 py-8">
+                    <p className="text-xl mb-2">背包空空如也</p>
+                    <p className="text-sm">去商店购买一些药水吧！</p>
+                  </div>
+                )}
+              </div>
+              
+              <button
+                onClick={() => setShowInventory(false)}
+                className="mt-6 w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-lg text-white font-bold"
+              >
+                关闭
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
