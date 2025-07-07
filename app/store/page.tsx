@@ -63,15 +63,43 @@ export default function StorePage() {
           }
         }
         
-        // If still no character data, DO NOT create a new one - this might be overwriting existing data
+        // If still no character data, try loading without cloud
         if (!char) {
-          console.error('No character data found for:', user);
-          console.log('LocalStorage keys:', Object.keys(localStorage).filter(k => k.includes('character')));
-          // Instead of creating new, redirect to hub to handle character creation
-          router.push('/');
-          return;
+          console.log('No character data found, checking localStorage directly');
+          console.log('Current user:', user);
+          console.log('Available keys:', Object.keys(localStorage).filter(k => k.includes('character')));
+          
+          // Try to create a basic character if truly nothing exists
+          const anyCharacterData = localStorage.getItem(`character_${user}`);
+          if (!anyCharacterData) {
+            console.log('Creating new character for:', user);
+            char = {
+              id: user,
+              type: user as 'josh' | 'abby',
+              level: 1,
+              experience: 0,
+              expToNextLevel: 100,
+              eth: BigInt(1000000000000000000), // 1 ETH
+              hp: 100,
+              maxHp: 100,
+              mp: 50,
+              maxMp: 50,
+              attack: 20,
+              defense: 10,
+              baseHp: 100,
+              baseMp: 50,
+              baseAttack: 20,
+              baseDefense: 10,
+              stagesCleared: [],
+              stagesPaidFor: [],
+              inventory: []
+            };
+            // Save the new character
+            await saveCharacter(char);
+          }
         }
         
+        // Ensure we have character data
         if (char) {
           // Ensure character has inventory
           if (!char.inventory) {
@@ -93,6 +121,10 @@ export default function StorePage() {
             )
           }));
           setEquipment(equipmentWithStatus);
+        } else {
+          // This should not happen anymore, but just in case
+          console.error('Failed to load or create character');
+          router.push('/');
         }
       } catch (error) {
         console.error('Error loading store data:', error);
