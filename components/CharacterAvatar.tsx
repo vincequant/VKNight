@@ -17,7 +17,7 @@ export default function CharacterAvatar({ character, size = 'md', className = ''
     xl: 128
   };
   
-  const pixelSize = sizeMap[size];
+  const pixelSize = sizeMap[size] || 64; // 添加默认值
   const [imageError, setImageError] = useState(false);
   
   // Use character images
@@ -37,9 +37,9 @@ export default function CharacterAvatar({ character, size = 'md', className = ''
       <Image
         src={imagePath}
         alt={character}
-        width={pixelSize}
-        height={pixelSize}
-        className="pixelated"
+        fill
+        sizes={`${pixelSize}px`}
+        className="pixelated object-contain"
         style={{ imageRendering: 'pixelated' }}
         priority
         onError={() => setImageError(true)}
