@@ -33,7 +33,12 @@ export default function StorePage() {
       try {
         // First try to load from localStorage
         let char = null;
-        const savedCharacter = localStorage.getItem(`character_${user}`);
+        // Try both possible keys for backward compatibility
+        let savedCharacter = localStorage.getItem(`character_${user}`);
+        if (!savedCharacter) {
+          // Try the vknight format used by hub
+          savedCharacter = localStorage.getItem(`vknight_character_1`);
+        }
         
         if (savedCharacter) {
           try {
@@ -47,6 +52,11 @@ export default function StorePage() {
               console.error('Error parsing old format:', e2);
             }
           }
+          
+          // Ensure character has the correct type
+          if (char && !char.type) {
+            char.type = user as 'josh' | 'abby';
+          }
         }
         
         // If no local data, try cloud (but don't block if it fails)
@@ -56,6 +66,34 @@ export default function StorePage() {
           } catch (cloudError) {
             console.error('Cloud load failed, but continuing:', cloudError);
           }
+        }
+        
+        // If still no character data, create a new one
+        if (!char) {
+          console.log('Creating new character for user:', user);
+          char = {
+            id: user,
+            type: user as 'josh' | 'abby',
+            level: 1,
+            experience: 0,
+            expToNextLevel: 100,
+            eth: BigInt(1000000000000000000), // 1 ETH
+            hp: 100,
+            maxHp: 100,
+            mp: 50,
+            maxMp: 50,
+            attack: 20,
+            defense: 10,
+            baseHp: 100,
+            baseMp: 50,
+            baseAttack: 20,
+            baseDefense: 10,
+            stagesCleared: [],
+            stagesPaidFor: [],
+            inventory: []
+          };
+          // Save the new character
+          await saveCharacter(char);
         }
         
         if (char) {
@@ -77,9 +115,6 @@ export default function StorePage() {
             )
           }));
           setEquipment(equipmentWithStatus);
-        } else {
-          console.error('No character data found for user:', user);
-          router.push('/');
         }
       } catch (error) {
         console.error('Error loading store data:', error);
