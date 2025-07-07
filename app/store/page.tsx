@@ -30,41 +30,59 @@ export default function StorePage() {
     const loadStoreData = async () => {
       const user = localStorage.getItem('currentUser') || 'abby';
       
-      // Try to load from cloud first, then fall back to localStorage
-      let char = await loadCharacterWithCloud(user);
-      
-      if (!char) {
+      try {
+        // First try to load from localStorage
+        let char = null;
         const savedCharacter = localStorage.getItem(`character_${user}`);
+        
         if (savedCharacter) {
           try {
             char = migrateCharacterData(deserializeCharacter(savedCharacter));
-          } catch {
+          } catch (e) {
+            console.error('Error deserializing character:', e);
             // Fallback for old format
-            char = migrateCharacterData(JSON.parse(savedCharacter));
+            try {
+              char = migrateCharacterData(JSON.parse(savedCharacter));
+            } catch (e2) {
+              console.error('Error parsing old format:', e2);
+            }
           }
         }
-      }
-      
-      if (char) {
-        // Ensure character has inventory
-        if (!char.inventory) {
-          char.inventory = [];
-        }
-        setCharacter(calculateCharacterStats(char));
         
-        // Load owned equipment and mark which ones are owned/equipped
-        const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${user}`) || '[]');
-        const equipmentWithStatus = EQUIPMENT_DATA.map(item => ({
-          ...item,
-          owned: ownedEquipment.includes(item.id),
-          equipped: (
-            (char.weapon?.id === item.id) ||
-            (char.armor?.id === item.id) ||
-            (char.shield?.id === item.id)
-          )
-        }));
-        setEquipment(equipmentWithStatus);
-      } else {
+        // If no local data, try cloud (but don't block if it fails)
+        if (!char) {
+          try {
+            char = await loadCharacterWithCloud(user);
+          } catch (cloudError) {
+            console.error('Cloud load failed, but continuing:', cloudError);
+          }
+        }
+        
+        if (char) {
+          // Ensure character has inventory
+          if (!char.inventory) {
+            char.inventory = [];
+          }
+          setCharacter(calculateCharacterStats(char));
+          
+          // Load owned equipment and mark which ones are owned/equipped
+          const ownedEquipment = JSON.parse(localStorage.getItem(`ownedEquipment_${user}`) || '[]');
+          const equipmentWithStatus = EQUIPMENT_DATA.map(item => ({
+            ...item,
+            owned: ownedEquipment.includes(item.id),
+            equipped: (
+              (char.weapon?.id === item.id) ||
+              (char.armor?.id === item.id) ||
+              (char.shield?.id === item.id)
+            )
+          }));
+          setEquipment(equipmentWithStatus);
+        } else {
+          console.error('No character data found for user:', user);
+          router.push('/');
+        }
+      } catch (error) {
+        console.error('Error loading store data:', error);
         router.push('/');
       }
     };
