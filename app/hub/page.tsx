@@ -12,7 +12,7 @@ import CharacterAvatar from '@/components/CharacterAvatar';
 import WorldMap from '@/components/WorldMap';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei } from '@/utils/ethereum';
-import { deserializeCharacter, loadCharacterWithCloud } from '@/utils/characterStorage';
+import { deserializeCharacter, loadCharacterWithCloud, saveCharacter } from '@/utils/characterStorage';
 
 export default function HubPage() {
   const [character, setCharacter] = useState<Character | null>(null);
@@ -33,7 +33,7 @@ export default function HubPage() {
       if (!character) {
         // Create new character
         character = {
-          id: '1',
+          id: user,
           type: user as 'josh' | 'abby',
           level: 1,
           experience: 0,
@@ -95,14 +95,8 @@ export default function HubPage() {
         characterToUse.hp = characterToUse.baseHp + (characterToUse.weapon?.hpBonus || 0) + 
                            (characterToUse.armor?.hpBonus || 0) + (characterToUse.shield?.hpBonus || 0);
         
-        // Save the leveled up character
-        const characterData = {
-          ...characterToUse,
-          weapon: characterToUse.weapon?.id,
-          armor: characterToUse.armor?.id,
-          shield: characterToUse.shield?.id
-        };
-        localStorage.setItem(`vknight_character_${characterToUse.id}`, JSON.stringify(characterData));
+        // Save the leveled up character using consistent key
+        await saveCharacter(characterToUse);
       }
       
       const calculatedCharacter = calculateCharacterStats(characterToUse);
@@ -154,16 +148,8 @@ export default function HubPage() {
         stagesPaidFor: [...(character.stagesPaidFor || []), stage.id]
       };
       
-      // Save the updated character data with proper BigInt serialization
-      const characterData = {
-        ...updatedCharacter,
-        eth: updatedCharacter.eth.toString() + 'n',
-        weapon: updatedCharacter.weapon?.id,
-        armor: updatedCharacter.armor?.id,
-        shield: updatedCharacter.shield?.id
-      };
-      
-      localStorage.setItem(`vknight_character_${updatedCharacter.id}`, JSON.stringify(characterData));
+      // Save using consistent key and proper serialization
+      await saveCharacter(updatedCharacter);
     }
     
     // Navigate to game with stage parameter

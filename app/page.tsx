@@ -8,6 +8,7 @@ import HomeNavbar from '@/app/components/HomeNavbar';
 import CharacterCard3D from '@/app/components/CharacterCard3D';
 import EnhancedLoadingScreen from '@/app/components/EnhancedLoadingScreen';
 import Image from 'next/image';
+import { migrateStorageKeys } from '@/lib/migrateStorage';
 
 const characters = [
   { 
@@ -45,6 +46,12 @@ const characters = [
 export default function Home() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Run storage migration on app load
+    migrateStorageKeys();
+  }, []);
 
   useEffect(() => {
     if (selectedUser) {
@@ -61,6 +68,20 @@ export default function Home() {
 
   const handleUserSelect = (userId: string) => {
     setSelectedUser(userId);
+  };
+  
+  const handlePressStart = () => {
+    const timer = setTimeout(() => {
+      window.location.href = '/admin';
+    }, 3000);
+    setPressTimer(timer);
+  };
+  
+  const handlePressEnd = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      setPressTimer(null);
+    }
   };
 
   return (
@@ -155,10 +176,21 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
           className="absolute bottom-8 text-center"
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onMouseLeave={handlePressEnd}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
         >
           <p className="text-sm text-gray-400">
-            家长模式：长按屏幕3秒
+            管理后台：长按这里3秒
           </p>
+          <button
+            onClick={() => window.location.href = '/recovery'}
+            className="text-xs text-blue-400 hover:text-blue-300 mt-2 underline"
+          >
+            进度恢复
+          </button>
           <p className="text-xs text-gray-500 mt-2">
             v0.2.0
           </p>

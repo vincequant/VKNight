@@ -33,12 +33,7 @@ export default function StorePage() {
       try {
         // First try to load from localStorage
         let char = null;
-        // Try both possible keys for backward compatibility
-        let savedCharacter = localStorage.getItem(`character_${user}`);
-        if (!savedCharacter) {
-          // Try the vknight format used by hub
-          savedCharacter = localStorage.getItem(`vknight_character_1`);
-        }
+        const savedCharacter = localStorage.getItem(`character_${user}`);
         
         if (savedCharacter) {
           try {
