@@ -8,7 +8,6 @@ export interface Consumable {
   price: bigint;
   effect: {
     hp?: number;
-    mp?: number;
     percentage?: boolean; // true if effect is percentage based
   };
   stackSize: number; // max stack size
@@ -84,65 +83,6 @@ export const consumables: Consumable[] = [
     stackSize: 20,
     icon: '💊',
     description: '完全恢复生命值'
-  },
-  
-  // MP Potions
-  {
-    id: 'small-mana-potion',
-    name: '小型魔力药水',
-    type: 'consumable',
-    category: 'potion',
-    price: ethToWei(1),
-    effect: {
-      mp: 30
-    },
-    stackSize: 99,
-    icon: '🔵',
-    description: '恢复30点魔力值'
-  },
-  {
-    id: 'medium-mana-potion',
-    name: '中型魔力药水',
-    type: 'consumable',
-    category: 'potion',
-    price: ethToWei(3),
-    effect: {
-      mp: 80
-    },
-    stackSize: 99,
-    icon: '💧',
-    description: '恢复80点魔力值'
-  },
-  
-  // Mixed Potions
-  {
-    id: 'rejuvenation-potion',
-    name: '恢复药剂',
-    type: 'consumable',
-    category: 'elixir',
-    price: ethToWei(8),
-    effect: {
-      hp: 100,
-      mp: 50
-    },
-    stackSize: 50,
-    icon: '🏺',
-    description: '恢复100点生命值和50点魔力值'
-  },
-  {
-    id: 'elixir-of-life',
-    name: '生命灵药',
-    type: 'consumable',
-    category: 'elixir',
-    price: ethToWei(100),
-    effect: {
-      hp: 80,
-      mp: 80,
-      percentage: true
-    },
-    stackSize: 10,
-    icon: '🏆',
-    description: '恢复80%生命值和魔力值'
   }
 ];
 
