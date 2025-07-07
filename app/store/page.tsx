@@ -63,32 +63,13 @@ export default function StorePage() {
           }
         }
         
-        // If still no character data, create a new one
+        // If still no character data, DO NOT create a new one - this might be overwriting existing data
         if (!char) {
-          console.log('Creating new character for user:', user);
-          char = {
-            id: user,
-            type: user as 'josh' | 'abby',
-            level: 1,
-            experience: 0,
-            expToNextLevel: 100,
-            eth: BigInt(1000000000000000000), // 1 ETH
-            hp: 100,
-            maxHp: 100,
-            mp: 50,
-            maxMp: 50,
-            attack: 20,
-            defense: 10,
-            baseHp: 100,
-            baseMp: 50,
-            baseAttack: 20,
-            baseDefense: 10,
-            stagesCleared: [],
-            stagesPaidFor: [],
-            inventory: []
-          };
-          // Save the new character
-          await saveCharacter(char);
+          console.error('No character data found for:', user);
+          console.log('LocalStorage keys:', Object.keys(localStorage).filter(k => k.includes('character')));
+          // Instead of creating new, redirect to hub to handle character creation
+          router.push('/');
+          return;
         }
         
         if (char) {
@@ -176,8 +157,23 @@ export default function StorePage() {
       ));
     }
     
+    // Log before recalculation
+    console.log('Before recalculation:', { 
+      hp: updatedChar.hp, 
+      maxHp: updatedChar.maxHp, 
+      inventory: updatedChar.inventory 
+    });
+    
     // Recalculate stats to ensure all derived properties are correct
     const recalculatedChar = calculateCharacterStats(updatedChar);
+    
+    // Log after recalculation
+    console.log('After recalculation:', { 
+      hp: recalculatedChar.hp, 
+      maxHp: recalculatedChar.maxHp, 
+      inventory: recalculatedChar.inventory 
+    });
+    
     setCharacter(recalculatedChar);
     await saveCharacter(recalculatedChar, true); // true to create backup on purchase
     

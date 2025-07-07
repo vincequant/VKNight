@@ -113,7 +113,7 @@ export const calculateCharacterStats = (character: Character): Character => {
   return {
     ...character,
     maxHp,
-    hp: character.hp || maxHp,
+    hp: character.hp !== undefined ? character.hp : maxHp,
     maxMp,
     mp: character.mp !== undefined ? character.mp : maxMp,
     attack: character.baseAttack + weaponBonus.attackBonus + armorBonus.attackBonus + shieldBonus.attackBonus + Math.floor(levelBonus / 2),
