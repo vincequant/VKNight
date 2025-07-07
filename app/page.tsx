@@ -9,6 +9,7 @@ import CharacterCard3D from '@/app/components/CharacterCard3D';
 import EnhancedLoadingScreen from '@/app/components/EnhancedLoadingScreen';
 import Image from 'next/image';
 import { migrateStorageKeys } from '@/lib/migrateStorage';
+import { clearAllGameData } from '@/utils/clearGameData';
 
 const characters = [
   { 
@@ -47,6 +48,7 @@ export default function Home() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     // Run storage migration on app load
@@ -82,6 +84,13 @@ export default function Home() {
       clearTimeout(pressTimer);
       setPressTimer(null);
     }
+  };
+
+  const handleClearData = () => {
+    clearAllGameData();
+    setShowClearConfirm(false);
+    // Reload the page to reset everything
+    window.location.reload();
   };
 
   return (
@@ -194,8 +203,62 @@ export default function Home() {
           <p className="text-xs text-gray-500 mt-2">
             v0.2.0
           </p>
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="text-xs text-red-500 hover:text-red-400 mt-2 underline"
+          >
+            清除所有游戏数据
+          </button>
         </motion.div>
       </div>
+
+      {/* Clear Data Confirmation Modal */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowClearConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-gray-800 rounded-lg p-6 max-w-md w-full border-2 border-red-500"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-2xl font-bold text-white mb-4">⚠️ 警告</h3>
+              <p className="text-gray-300 mb-6">
+                确定要清除所有游戏数据吗？这将删除：
+              </p>
+              <ul className="text-gray-400 mb-6 space-y-1">
+                <li>• 所有角色数据</li>
+                <li>• 已购买的装备和药水</li>
+                <li>• 游戏进度和成就</li>
+                <li>• 所有备份数据</li>
+              </ul>
+              <p className="text-red-400 font-bold mb-6">此操作无法撤销！</p>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  className="flex-1 bg-gray-700 text-white py-3 rounded-lg font-bold hover:bg-gray-600"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleClearData}
+                  className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700"
+                >
+                  确认清除
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx>{`
         @keyframes blob {
