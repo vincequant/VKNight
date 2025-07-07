@@ -30,6 +30,30 @@ export default function StorePage() {
     const loadStoreData = async () => {
       const user = localStorage.getItem('currentUser') || 'abby';
       
+      // Special handling for vince (god mode)
+      if (user === 'vince') {
+        const vinceData = localStorage.getItem('character_vince');
+        if (vinceData) {
+          const vinceChar = JSON.parse(vinceData);
+          const calculatedChar = calculateCharacterStats(vinceChar);
+          setCharacter(calculatedChar);
+          
+          // All equipment owned for vince
+          const allOwned = true;
+          const equipmentWithStatus = EQUIPMENT_DATA.map(item => ({
+            ...item,
+            owned: allOwned,
+            equipped: (
+              (vinceChar.weapon?.id === item.id) ||
+              (vinceChar.armor?.id === item.id) ||
+              (vinceChar.shield?.id === item.id)
+            )
+          }));
+          setEquipment(equipmentWithStatus);
+          return;
+        }
+      }
+      
       try {
         // First try to load from localStorage
         let char = null;

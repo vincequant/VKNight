@@ -24,6 +24,21 @@ export default function EquipmentPage() {
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser') || 'abby';
+    
+    // Special handling for vince (god mode)
+    if (user === 'vince') {
+      const vinceData = localStorage.getItem('character_vince');
+      if (vinceData) {
+        const vinceChar = migrateCharacterData(JSON.parse(vinceData));
+        setCharacter(calculateCharacterStats(vinceChar));
+        
+        // All equipment owned for vince
+        const allOwned = EQUIPMENT_DATA.map(item => item.id);
+        setOwnedEquipment(allOwned);
+        return;
+      }
+    }
+    
     const savedCharacter = localStorage.getItem(`character_${user}`);
     
     if (savedCharacter) {

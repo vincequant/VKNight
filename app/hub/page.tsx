@@ -27,6 +27,18 @@ export default function HubPage() {
       // Check if there's saved character data
       const user = localStorage.getItem('currentUser') || 'josh';
       
+      // Special handling for vince (god mode)
+      if (user === 'vince') {
+        const vinceData = localStorage.getItem('character_vince');
+        if (vinceData) {
+          const vinceChar = JSON.parse(vinceData);
+          setCharacter(calculateCharacterStats(vinceChar));
+          const unlockedStages = getUnlockedStages(99, vinceChar.stagesCleared);
+          setAvailableStages(unlockedStages);
+          return;
+        }
+      }
+      
       // Try to load from cloud first, then fall back to localStorage
       let character = await loadCharacterWithCloud(user);
       

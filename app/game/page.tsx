@@ -60,7 +60,13 @@ function GameContent() {
     const user = localStorage.getItem('currentUser') || 'abby';
     const userDifficulty = localStorage.getItem('userDifficulty') as Difficulty || 'EASY';
     setCurrentUser(user);
-    setDifficulty(userDifficulty);
+    
+    // Force easy mode for vince (god mode)
+    if (user === 'vince') {
+      setDifficulty('EASY');
+    } else {
+      setDifficulty(userDifficulty);
+    }
     
     // Load stage
     const stage = getStageById(stageId);
@@ -72,6 +78,16 @@ function GameContent() {
     
     // Initialize character
     const initCharacter = async () => {
+      // Special handling for vince (god mode)
+      if (user === 'vince') {
+        const vinceData = localStorage.getItem('character_vince');
+        if (vinceData) {
+          const vinceChar = JSON.parse(vinceData);
+          setCharacter(calculateCharacterStats(vinceChar));
+          return;
+        }
+      }
+      
       let char = await loadCharacterWithCloud(user);
       
       if (!char) {
