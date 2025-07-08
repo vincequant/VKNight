@@ -231,12 +231,23 @@ function GameContent() {
     setTimeout(() => {
       if (currentEnemy && character) {
         const damage = Math.max(1, currentEnemy.attack - character.defense);
-        dealDamageToPlayer(damage);
+        const newHp = Math.max(0, character.hp - damage);
+        const updatedChar = { ...character, hp: newHp };
+        
+        setCharacter(updatedChar);
+        setShowDamage({ amount: damage, type: 'player' });
+        soundManager.play('damage');
         
         setTimeout(() => {
-          if (character.hp - damage > 0) {
+          setShowDamage(null);
+          if (newHp > 0) {
+            saveCharacter(updatedChar);
             generateNewQuestion();
             setBattleState({ ...battleState, mode: 'question' });
+          } else {
+            // Game over
+            setBattleState({ ...battleState, mode: 'defeat' });
+            saveCharacter(updatedChar);
           }
         }, 1000);
       }
