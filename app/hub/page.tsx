@@ -483,6 +483,23 @@ export default function HubPage() {
                       )}
                     </div>
 
+                    {/* Question Types */}
+                    {stage.questionTypes && stage.questionTypes.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-700">
+                        <p className="text-xs text-gray-400 mb-2">题型标签:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {stage.questionTypes.map((type, i) => (
+                            <span 
+                              key={i} 
+                              className="bg-gray-700 text-xs px-2 py-1 rounded-full text-yellow-300"
+                            >
+                              {type}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Enemy Preview */}
                     <div className="mt-3 pt-3 border-t border-gray-700">
                       <p className="text-xs text-gray-400 mb-2">敌人预览:</p>

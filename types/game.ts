@@ -68,6 +68,7 @@ export interface Stage {
   expReward: number;
   entranceFee: bigint;  // ETH required to enter stage
   description: string;
+  questionTypes?: string[];  // 题型标签
   icon: string;
   order: number;
   locked: boolean;
