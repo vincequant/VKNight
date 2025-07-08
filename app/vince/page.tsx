@@ -2,25 +2,20 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Character } from '@/types/game';
-import { ethToWei } from '@/utils/ethereum';
-import { saveCharacter } from '@/utils/characterStorage';
-import { calculateCharacterStats } from '@/types/game';
-import { ALL_STAGES } from '@/data/stages';
 
 export default function VincePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const initGodMode = async () => {
+    try {
       // Create a super character for testing
-      const godCharacter: Character = {
+      const godCharacter = {
         id: 'vince',
-        type: 'josh', // Use Josh as base
+        type: 'josh',
         level: 99,
         experience: 0,
         expToNextLevel: 999999,
-        eth: ethToWei(100000), // 100,000 ETH
+        eth: '100000000000000000000000n', // 100,000 ETH as BigInt string
         hp: 9999,
         maxHp: 9999,
         mp: 9999,
@@ -31,8 +26,20 @@ export default function VincePage() {
         baseMp: 9999,
         baseAttack: 999,
         baseDefense: 999,
-        stagesCleared: ALL_STAGES.map(stage => stage.id), // All stages cleared
-        stagesPaidFor: ALL_STAGES.map(stage => stage.id), // All entrance fees paid
+        stagesCleared: [
+          'forest-1', 'forest-2', 'forest-3', 'forest-4', 'forest-5',
+          'mountain-1', 'mountain-2', 'mountain-3', 'mountain-4', 'mountain-5',
+          'volcano-1', 'volcano-2', 'volcano-3', 'volcano-4', 'volcano-5',
+          'dungeon-1', 'dungeon-2', 'dungeon-3', 'dungeon-4', 'dungeon-5',
+          'demon-1', 'demon-2', 'demon-3', 'demon-4', 'demon-5'
+        ],
+        stagesPaidFor: [
+          'forest-1', 'forest-2', 'forest-3', 'forest-4', 'forest-5',
+          'mountain-1', 'mountain-2', 'mountain-3', 'mountain-4', 'mountain-5',
+          'volcano-1', 'volcano-2', 'volcano-3', 'volcano-4', 'volcano-5',
+          'dungeon-1', 'dungeon-2', 'dungeon-3', 'dungeon-4', 'dungeon-5',
+          'demon-1', 'demon-2', 'demon-3', 'demon-4', 'demon-5'
+        ],
         inventory: [
           { id: 'small-health-potion', quantity: 99 },
           { id: 'medium-health-potion', quantity: 99 },
@@ -40,13 +47,12 @@ export default function VincePage() {
           { id: 'super-health-potion', quantity: 99 },
           { id: 'full-health-potion', quantity: 20 },
         ],
-        // Best equipment
         weapon: {
           id: 'legendary-sword',
           name: '传奇之剑',
           type: 'weapon',
           tier: 5,
-          price: ethToWei(100),
+          price: '100000000000000000000n',
           hpBonus: 200,
           attackBonus: 150,
           defenseBonus: 50,
@@ -59,7 +65,7 @@ export default function VincePage() {
           name: '传奇护甲',
           type: 'armor',
           tier: 5,
-          price: ethToWei(100),
+          price: '100000000000000000000n',
           hpBonus: 300,
           attackBonus: 50,
           defenseBonus: 200,
@@ -72,7 +78,7 @@ export default function VincePage() {
           name: '传奇盾牌',
           type: 'shield',
           tier: 5,
-          price: ethToWei(100),
+          price: '100000000000000000000n',
           hpBonus: 200,
           attackBonus: 30,
           defenseBonus: 150,
@@ -81,16 +87,11 @@ export default function VincePage() {
           levelRequirement: 50,
         },
       };
-
-      // Calculate final stats
-      const finalCharacter = calculateCharacterStats(godCharacter);
       
-      // Save to localStorage with special key
+      // Save to localStorage
       localStorage.setItem('currentUser', 'vince');
-      localStorage.setItem(`character_vince`, JSON.stringify(finalCharacter));
-      
-      // Also set as Josh for compatibility
-      await saveCharacter({ ...finalCharacter, type: 'josh' as 'josh' | 'abby' });
+      localStorage.setItem('character_vince', JSON.stringify(godCharacter));
+      localStorage.setItem('character_josh', JSON.stringify(godCharacter));
       
       // Save owned equipment
       const allEquipmentIds = [
@@ -101,18 +102,24 @@ export default function VincePage() {
       localStorage.setItem('ownedEquipment_josh', JSON.stringify(allEquipmentIds));
       localStorage.setItem('ownedEquipment_vince', JSON.stringify(allEquipmentIds));
       
-      // Set difficulty to EASY for easier testing
+      // Set difficulty to EASY
       localStorage.setItem('userDifficulty', 'EASY');
       
       // Log success
       console.log('God mode activated!');
-      console.log('Character:', finalCharacter);
       
-      // Redirect to hub
-      router.push('/hub');
-    };
-
-    initGodMode();
+      // Add a small delay before redirecting
+      setTimeout(() => {
+        router.push('/hub');
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error activating god mode:', error);
+      // If there's an error, still try to redirect
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
+    }
   }, [router]);
 
   return (
