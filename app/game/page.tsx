@@ -82,7 +82,7 @@ function GameContent() {
       if (user === 'vince') {
         const vinceData = localStorage.getItem('character_vince');
         if (vinceData) {
-          const vinceChar = JSON.parse(vinceData);
+          const vinceChar = deserializeCharacter(vinceData);
           setCharacter(calculateCharacterStats(vinceChar));
           return;
         }
