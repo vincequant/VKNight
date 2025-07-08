@@ -68,15 +68,17 @@ export default function Home() {
           if (currentCharData) {
             try {
               const charData = JSON.parse(currentCharData);
-              // If character has unrealistic stats, remove the data
-              if (charData.level > 50 || charData.hp > 1000) {
+              // If character has unrealistic stats (higher than possible at level 30), remove the data
+              // Max level 30 would have approximately: HP ~400, Attack ~110, Defense ~70
+              if (charData.level > 50 || charData.baseHp > 500 || charData.baseAttack > 150 || charData.baseDefense > 100) {
+                console.log(`Removing contaminated character data for ${selectedUser}`);
                 localStorage.removeItem(`character_${selectedUser}`);
                 localStorage.removeItem(`ownedEquipment_${selectedUser}`);
               }
             } catch (e) {
-              // Invalid data, remove it
-              localStorage.removeItem(`character_${selectedUser}`);
-              localStorage.removeItem(`ownedEquipment_${selectedUser}`);
+              // If JSON parsing fails, data might be in new format with bigint
+              // Don't delete unless we're sure it's corrupted
+              console.log('Character data in new format, skipping contamination check');
             }
           }
         }

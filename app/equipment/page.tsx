@@ -43,7 +43,16 @@ export default function EquipmentPage() {
     
     const savedCharacter = localStorage.getItem(`character_${user}`);
     
-    if (savedCharacter) {
+    if (!savedCharacter) {
+      console.log('No character data found for user:', user);
+      // 延迟跳转，避免立即重定向
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
+      return;
+    }
+    
+    try {
       let char;
       try {
         char = migrateCharacterData(deserializeCharacter(savedCharacter));
@@ -56,8 +65,11 @@ export default function EquipmentPage() {
       // Load owned equipment
       const owned = JSON.parse(localStorage.getItem(`ownedEquipment_${user}`) || '[]');
       setOwnedEquipment(owned);
-    } else {
-      router.push('/');
+    } catch (error) {
+      console.error('Error loading character data:', error);
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
     }
   }, [router]);
 

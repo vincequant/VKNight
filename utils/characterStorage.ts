@@ -34,8 +34,16 @@ export function deserializeCharacter(data: string): Character {
 
 // Save character to localStorage and cloud
 export async function saveCharacter(character: Character, createBackupFlag: boolean = false): Promise<void> {
-  const key = `character_${character.type}`;
+  // Use consistent key - either character.id or character.type
+  const key = `character_${character.id || character.type}`;
   localStorage.setItem(key, serializeCharacter(character));
+  
+  // Also save owned equipment if present
+  if (character.inventory) {
+    const equipmentKey = `ownedEquipment_${character.id || character.type}`;
+    const ownedIds = character.inventory.map(item => item.id);
+    localStorage.setItem(equipmentKey, JSON.stringify(ownedIds));
+  }
   
   // Create backup on important events
   if (createBackupFlag) {
