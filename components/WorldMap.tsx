@@ -88,7 +88,9 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
         {/* Area Markers */}
         {areas.map((area) => {
           const progress = getAreaProgress(area.name);
-          const isAccessible = getAreaStages(area.name).some(stage => !stage.locked);
+          const areaStages = getAreaStages(area.name);
+          const isAccessible = areaStages.some(stage => !stage.locked);
+          const isComingSoon = areaStages.length > 0 && areaStages.every(stage => stage.comingSoon);
           
           return (
             <motion.div
@@ -101,7 +103,7 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
               }}
               onMouseEnter={() => setHoveredArea(area.name)}
               onMouseLeave={() => setHoveredArea(null)}
-              onClick={() => isAccessible && setSelectedArea(area.name)}
+              onClick={() => isAccessible && !isComingSoon && setSelectedArea(area.name)}
               animate={{
                 scale: hoveredArea === area.name ? 1.2 : 1,
               }}
@@ -109,7 +111,7 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
               {/* Area Icon with Glow */}
               <div className={`
                 relative flex items-center justify-center w-16 h-16 rounded-full
-                ${isAccessible ? 'bg-yellow-600/80' : 'bg-gray-600/80'}
+                ${isComingSoon ? 'bg-purple-600/80' : isAccessible ? 'bg-yellow-600/80' : 'bg-gray-600/80'}
                 ${hoveredArea === area.name ? 'shadow-lg shadow-yellow-400/50' : ''}
                 transition-all duration-200
               `}>
@@ -143,9 +145,10 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
               <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
                 <span className={`
                   text-sm font-bold px-2 py-1 rounded
-                  ${isAccessible ? 'bg-black/80 text-yellow-400' : 'bg-black/60 text-gray-400'}
+                  ${isComingSoon ? 'bg-purple-900/80 text-purple-300' : isAccessible ? 'bg-black/80 text-yellow-400' : 'bg-black/60 text-gray-400'}
                 `}>
                   {area.name}
+                  {isComingSoon && ' 🚧'}
                 </span>
               </div>
             </motion.div>
@@ -207,13 +210,15 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
                 {getAreaStages(selectedArea).map(stage => (
                   <motion.div
                     key={stage.id}
-                    whileHover={{ scale: stage.locked ? 1 : 1.02 }}
-                    onClick={() => !stage.locked && onStageSelect(stage)}
+                    whileHover={{ scale: stage.locked || stage.comingSoon ? 1 : 1.02 }}
+                    onClick={() => !stage.locked && !stage.comingSoon && onStageSelect(stage)}
                     className={`
-                      p-4 rounded-lg border-2 cursor-pointer transition-all
-                      ${stage.locked 
-                        ? 'bg-gray-800/50 border-gray-700 opacity-50' 
-                        : 'bg-gray-800 border-yellow-600/50 hover:border-yellow-600'
+                      p-4 rounded-lg border-2 transition-all
+                      ${stage.comingSoon
+                        ? 'bg-gray-900/50 border-purple-700 opacity-60 cursor-not-allowed'
+                        : stage.locked 
+                        ? 'bg-gray-800/50 border-gray-700 opacity-50 cursor-not-allowed' 
+                        : 'bg-gray-800 border-yellow-600/50 hover:border-yellow-600 cursor-pointer'
                       }
                       ${clearedStages.includes(stage.id) ? 'ring-2 ring-green-500/50' : ''}
                     `}
@@ -222,7 +227,10 @@ export default function WorldMap({ availableStages, onStageSelect, clearedStages
                       <div>
                         <h3 className="font-bold text-white flex items-center gap-2">
                           {stage.name}
-                          {clearedStages.includes(stage.id) && (
+                          {stage.comingSoon && (
+                            <span className="text-purple-400 text-sm">🚧 即将开放</span>
+                          )}
+                          {!stage.comingSoon && clearedStages.includes(stage.id) && (
                             <span className="text-green-400 text-sm">✓ 已完成</span>
                           )}
                         </h3>

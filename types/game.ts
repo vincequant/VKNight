@@ -72,6 +72,7 @@ export interface Stage {
   icon: string;
   order: number;
   locked: boolean;
+  comingSoon?: boolean;  // 标记为即将开放
 }
 
 export interface Enemy {

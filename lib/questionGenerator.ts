@@ -8,13 +8,23 @@ export class QuestionGenerator {
   static generateAddition(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number;
     
-    // 使用配置的范围或默认值
-    const minNum = config?.minNum;
-    const maxNum = config?.maxNum;
-    
-    if (minNum !== undefined && maxNum !== undefined) {
-      num1 = Math.floor(Math.random() * (maxNum - minNum)) + minNum;
-      num2 = Math.floor(Math.random() * (maxNum - minNum)) + minNum;
+    // 处理单位数+双位数的特殊配置
+    if (config?.singlePlusDouble) {
+      // 生成一个单位数 (1-9) 和一个双位数 (10-99)
+      const single = Math.floor(Math.random() * 9) + 1;
+      const double = Math.floor(Math.random() * 90) + 10;
+      // 随机决定哪个在前
+      if (Math.random() > 0.5) {
+        num1 = single;
+        num2 = double;
+      } else {
+        num1 = double;
+        num2 = single;
+      }
+    } else if (config?.minNum !== undefined && config?.maxNum !== undefined) {
+      // 使用配置的范围
+      num1 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
+      num2 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
     } else {
       switch (difficulty) {
         case 'EASY':
@@ -61,13 +71,14 @@ export class QuestionGenerator {
     const minNum = config?.minNum;
     const maxNum = config?.maxNum;
     
-    if (minNum !== undefined && maxNum !== undefined) {
-      num1 = Math.floor(Math.random() * (maxNum - minNum)) + minNum;
-      num2 = Math.floor(Math.random() * (num1 - minNum)) + minNum;
-      // 确保结果为正
-      if (num2 >= num1) {
-        [num1, num2] = [num2, num1];
-      }
+    if (maxNum !== undefined && !minNum) {
+      // 如果只设置了maxNum（用于单位数减法）
+      num1 = Math.floor(Math.random() * (maxNum - 1)) + 2; // 2到maxNum
+      num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1到num1-1
+    } else if (minNum !== undefined && maxNum !== undefined) {
+      // 双位数减法
+      num1 = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
+      num2 = Math.floor(Math.random() * Math.min(num1 - 1, maxNum - minNum)) + 1;
     } else {
       switch (difficulty) {
         case 'EASY':
@@ -114,7 +125,11 @@ export class QuestionGenerator {
     const minNum = config?.minNum;
     const maxNum = config?.maxNum;
     
-    if (minNum !== undefined && maxNum !== undefined) {
+    if (maxNum !== undefined && !minNum) {
+      // 简单乘法 (1到maxNum的乘法)
+      num1 = Math.floor(Math.random() * maxNum) + 1;
+      num2 = Math.floor(Math.random() * maxNum) + 1;
+    } else if (minNum !== undefined && maxNum !== undefined) {
       // 如果指定了范围，使用较小的数字避免结果过大
       const range = Math.min(maxNum - minNum, 20);
       num1 = Math.floor(Math.random() * range) + minNum;

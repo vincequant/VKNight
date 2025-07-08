@@ -6,7 +6,7 @@ export const stages: Stage[] = [
   // 森林区域 - 基础数学
   {
     id: 'forest-1',
-    name: '迷雾森林',
+    name: '数学森林入口',
     area: '森林',
     difficulty: 1,
     levelRequirement: 1,
@@ -18,7 +18,7 @@ export const stages: Stage[] = [
     ethReward: ethToWei(1),
     expReward: 50,
     entranceFee: ethToWei(0),
-    description: '基础加减法训练',
+    description: '双位数加法、单位数加减法训练',
     questionTypes: STAGE_QUESTION_LABELS['forest-1'],
     icon: '🌲',
     order: 1,
@@ -26,7 +26,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'forest-2',
-    name: '古树小径',
+    name: '智慧古树',
     area: '森林',
     difficulty: 2,
     levelRequirement: 3,
@@ -38,7 +38,7 @@ export const stages: Stage[] = [
     ethReward: ethToWei(3),
     expReward: 80,
     entranceFee: ethToWei(5),
-    description: '数字规律与简单逻辑',
+    description: '双位数减法、复杂加法、简单乘法、逻辑推理',
     questionTypes: STAGE_QUESTION_LABELS['forest-2'],
     icon: '🌳',
     order: 2,
@@ -48,6 +48,7 @@ export const stages: Stage[] = [
     id: 'forest-3',
     name: '精灵圣地',
     area: '森林',
+    comingSoon: true,
     difficulty: 3,
     levelRequirement: 5,
     enemies: [
@@ -68,6 +69,7 @@ export const stages: Stage[] = [
   // 山脉区域 - 进阶运算
   {
     id: 'mountain-1',
+    comingSoon: true,
     name: '山脚营地',
     area: '山脉',
     difficulty: 3,
@@ -88,6 +90,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'mountain-2',
+    comingSoon: true,
     name: '冰封峡谷',
     area: '山脉',
     difficulty: 4,
@@ -108,6 +111,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'mountain-3',
+    comingSoon: true,
     name: '云顶之巅',
     area: '山脉',
     difficulty: 5,
@@ -130,6 +134,7 @@ export const stages: Stage[] = [
   // 火山区域 - 乘除专精
   {
     id: 'volcano-1',
+    comingSoon: true,
     name: '熔岩洞穴',
     area: '火山',
     difficulty: 5,
@@ -150,6 +155,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'volcano-2',
+    comingSoon: true,
     name: '龙之巢穴',
     area: '火山',
     difficulty: 6,
@@ -170,6 +176,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'volcano-3',
+    comingSoon: true,
     name: '炎魔祭坛',
     area: '火山',
     difficulty: 7,
@@ -192,6 +199,7 @@ export const stages: Stage[] = [
   // 地下城区域 - 综合应用
   {
     id: 'dungeon-1',
+    comingSoon: true,
     name: '遗忘地牢',
     area: '地下城',
     difficulty: 7,
@@ -212,6 +220,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'dungeon-2',
+    comingSoon: true,
     name: '暗黑迷宫',
     area: '地下城',
     difficulty: 8,
@@ -232,6 +241,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'dungeon-3',
+    comingSoon: true,
     name: '死亡深渊',
     area: '地下城',
     difficulty: 9,
@@ -254,6 +264,7 @@ export const stages: Stage[] = [
   // 魔界区域 - 高级挑战
   {
     id: 'demon-1',
+    comingSoon: true,
     name: '炼狱之门',
     area: '魔界',
     difficulty: 9,
@@ -274,6 +285,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'demon-2',
+    comingSoon: true,
     name: '堕落圣殿',
     area: '魔界',
     difficulty: 10,
@@ -294,6 +306,7 @@ export const stages: Stage[] = [
   },
   {
     id: 'demon-3',
+    comingSoon: true,
     name: '魔王殿堂',
     area: '魔界',
     difficulty: 10,

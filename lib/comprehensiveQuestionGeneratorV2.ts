@@ -43,23 +43,33 @@ interface StageConfig {
 
 // 重新设计的关卡配置，确保难度递进
 const STAGE_CONFIGS: Record<string, StageConfig> = {
-  // 森林区域 - 基础认知（1-10以内）
+  // 第一关 - 双位数加法、单位数加减法
   'forest-1': {
     questionTypes: [
-      { type: 'addition', weight: 40, config: { maxNum: 10 } },
-      { type: 'comparison', weight: 40, config: { maxNum: 10 } },
-      { type: 'pattern', weight: 20, minDifficulty: 'EASY', maxDifficulty: 'EASY' }
+      // 双位数加法 (10-99的加法)
+      { type: 'addition', weight: 35, config: { minNum: 10, maxNum: 99 } },
+      // 单位数+双位数加法 (1-9 + 10-99)
+      { type: 'addition', weight: 25, config: { singlePlusDouble: true } },
+      // 单位数减法 (1-9的减法)
+      { type: 'subtraction', weight: 40, config: { maxNum: 9 } }
     ],
-    difficultyOverride: 'EASY'
+    difficultyOverride: 'EASY',
+    baseTimeLimit: 60
   },
+  // 第二关 - 双位数减法、复杂加法、简单乘法、逻辑题
   'forest-2': {
     questionTypes: [
-      { type: 'addition', weight: 30, config: { maxNum: 20 } },
-      { type: 'subtraction', weight: 30, config: { maxNum: 20 } },
-      { type: 'pattern', weight: 20, minDifficulty: 'EASY', maxDifficulty: 'MEDIUM' },
-      { type: 'comparison', weight: 20, config: { maxNum: 20 } }
+      // 双位数减法
+      { type: 'subtraction', weight: 30, config: { minNum: 10, maxNum: 99 } },
+      // 更复杂的双位数加法 (包括进位)
+      { type: 'addition', weight: 25, config: { minNum: 20, maxNum: 99, carryOver: true } },
+      // 简单乘法 (1-5的乘法)
+      { type: 'multiplication', weight: 25, config: { maxNum: 5 } },
+      // 逻辑推理题
+      { type: 'logic', weight: 20, minDifficulty: 'EASY', maxDifficulty: 'EASY' }
     ],
-    difficultyOverride: 'EASY'
+    difficultyOverride: 'EASY',
+    baseTimeLimit: 50
   },
   'forest-3': {
     questionTypes: [
