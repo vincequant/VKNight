@@ -4,6 +4,26 @@ import { PatternGenerator } from './questionGenerators/patternGenerator';
 import { ComparisonGenerator } from './questionGenerators/comparisonGenerator';
 import { LogicGenerator } from './questionGenerators/logicGenerator';
 
+// 题型中文标签映射
+export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  'addition': '加法',
+  'subtraction': '减法',
+  'multiplication': '乘法',
+  'division': '除法',
+  'pattern': '找规律',
+  'comparison': '比大小',
+  'sequence': '数列',
+  'logic': '逻辑推理',
+  'geometry': '几何',
+  'word-problem': '应用题',
+  'time': '时间计算',
+  'money': '金钱计算',
+  'measurement': '测量',
+  'fraction': '分数',
+  'percentage': '百分比',
+  'algebra': '代数'
+};
+
 // 关卡配置
 interface StageQuestionConfig {
   type: QuestionType;
@@ -42,196 +62,117 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
       { type: 'logic', weight: 20 }
     ]
   },
-  'forest-4': {
-    questionTypes: [
-      { type: 'addition', weight: 20 },
-      { type: 'subtraction', weight: 20 },
-      { type: 'word-problem', weight: 30 },
-      { type: 'pattern', weight: 30 }
-    ]
-  },
-  'forest-5': {
-    questionTypes: [
-      { type: 'addition', weight: 15 },
-      { type: 'subtraction', weight: 15 },
-      { type: 'comparison', weight: 20 },
-      { type: 'pattern', weight: 25 },
-      { type: 'logic', weight: 25 }
-    ]
-  },
   
   // 山脉区域 - 运算进阶
   'mountain-1': {
     questionTypes: [
-      { type: 'addition', weight: 60, config: { carryOver: true } },
-      { type: 'sequence', weight: 20 },
-      { type: 'pattern', weight: 20 }
+      { type: 'addition', weight: 50, config: { carryOver: true } },
+      { type: 'subtraction', weight: 30, config: { borrowing: true } },
+      { type: 'sequence', weight: 20 }
     ]
   },
   'mountain-2': {
     questionTypes: [
-      { type: 'subtraction', weight: 60, config: { borrowing: true } },
-      { type: 'sequence', weight: 20 },
-      { type: 'comparison', weight: 20 }
+      { type: 'multiplication', weight: 40 },
+      { type: 'pattern', weight: 30 },
+      { type: 'logic', weight: 30 }
     ]
   },
   'mountain-3': {
     questionTypes: [
-      { type: 'multiplication', weight: 50 },
-      { type: 'word-problem', weight: 25 },
-      { type: 'pattern', weight: 25 }
-    ]
-  },
-  'mountain-4': {
-    questionTypes: [
-      { type: 'addition', weight: 20 },
-      { type: 'subtraction', weight: 20 },
       { type: 'multiplication', weight: 30 },
-      { type: 'logic', weight: 30 }
-    ]
-  },
-  'mountain-5': {
-    questionTypes: [
-      { type: 'logic', weight: 40 },
-      { type: 'pattern', weight: 30 },
-      { type: 'comparison', weight: 30 }
+      { type: 'word-problem', weight: 35 },
+      { type: 'pattern', weight: 35 }
     ]
   },
   
   // 火山区域 - 乘除专精
   'volcano-1': {
     questionTypes: [
-      { type: 'multiplication', weight: 60 },
-      { type: 'word-problem', weight: 40 }
+      { type: 'multiplication', weight: 50 },
+      { type: 'division', weight: 30 },
+      { type: 'word-problem', weight: 20 }
     ]
   },
   'volcano-2': {
     questionTypes: [
-      { type: 'multiplication', weight: 30 },
       { type: 'division', weight: 40 },
-      { type: 'pattern', weight: 30 }
+      { type: 'multiplication', weight: 30 },
+      { type: 'comparison', weight: 30 }
     ]
   },
   'volcano-3': {
     questionTypes: [
-      { type: 'division', weight: 50 },
-      { type: 'multiplication', weight: 25 },
-      { type: 'logic', weight: 25 }
-    ]
-  },
-  'volcano-4': {
-    questionTypes: [
-      { type: 'multiplication', weight: 25 },
-      { type: 'division', weight: 25 },
-      { type: 'word-problem', weight: 25 },
-      { type: 'pattern', weight: 25 }
-    ]
-  },
-  'volcano-5': {
-    questionTypes: [
-      { type: 'multiplication', weight: 20 },
-      { type: 'division', weight: 20 },
-      { type: 'logic', weight: 30 },
-      { type: 'pattern', weight: 30 }
+      { type: 'multiplication', weight: 35 },
+      { type: 'division', weight: 35 },
+      { type: 'word-problem', weight: 30 }
     ]
   },
   
   // 地下城区域 - 综合应用
   'dungeon-1': {
     questionTypes: [
-      { type: 'addition', weight: 15 },
-      { type: 'subtraction', weight: 15 },
-      { type: 'multiplication', weight: 15 },
-      { type: 'division', weight: 15 },
-      { type: 'word-problem', weight: 20 },
-      { type: 'logic', weight: 20 }
-    ]
-  },
-  'dungeon-2': {
-    questionTypes: [
-      { type: 'multiplication', weight: 20 },
-      { type: 'division', weight: 20 },
-      { type: 'pattern', weight: 20 },
-      { type: 'logic', weight: 20 },
-      { type: 'word-problem', weight: 20 }
-    ]
-  },
-  'dungeon-3': {
-    questionTypes: [
-      { type: 'logic', weight: 35 },
-      { type: 'pattern', weight: 35 },
-      { type: 'word-problem', weight: 30 }
-    ]
-  },
-  'dungeon-4': {
-    questionTypes: [
-      { type: 'pattern', weight: 25 },
-      { type: 'logic', weight: 25 },
+      { type: 'word-problem', weight: 50 },
       { type: 'multiplication', weight: 25 },
       { type: 'division', weight: 25 }
     ]
   },
-  'dungeon-5': {
+  'dungeon-2': {
     questionTypes: [
-      { type: 'logic', weight: 30 },
+      { type: 'logic', weight: 50 },
       { type: 'pattern', weight: 30 },
-      { type: 'word-problem', weight: 40 }
+      { type: 'comparison', weight: 20 }
     ]
   },
-  
-  // 魔界区域 - 高级挑战
-  'demon-1': {
-    questionTypes: [
-      { type: 'addition', weight: 20, config: { expert: true } },
-      { type: 'subtraction', weight: 20, config: { expert: true } },
-      { type: 'multiplication', weight: 30 },
-      { type: 'logic', weight: 30 }
-    ]
-  },
-  'demon-2': {
-    questionTypes: [
-      { type: 'multiplication', weight: 25 },
-      { type: 'division', weight: 25 },
-      { type: 'pattern', weight: 25 },
-      { type: 'logic', weight: 25 }
-    ]
-  },
-  'demon-3': {
+  'dungeon-3': {
     questionTypes: [
       { type: 'logic', weight: 40 },
       { type: 'pattern', weight: 30 },
       { type: 'word-problem', weight: 30 }
     ]
   },
-  'demon-4': {
-    questionTypes: [
-      { type: 'pattern', weight: 35 },
-      { type: 'logic', weight: 35 },
-      { type: 'multiplication', weight: 15 },
-      { type: 'division', weight: 15 }
-    ]
-  },
-  'demon-5': {
-    questionTypes: [
-      { type: 'logic', weight: 50 },
-      { type: 'pattern', weight: 30 },
-      { type: 'word-problem', weight: 20 }
-    ]
-  },
   
-  // 最终Boss
-  'final-boss': {
+  // 魔界区域 - 高级挑战
+  'demon-1': {
     questionTypes: [
       { type: 'logic', weight: 30 },
-      { type: 'pattern', weight: 20 },
+      { type: 'pattern', weight: 30 },
+      { type: 'multiplication', weight: 20 },
+      { type: 'division', weight: 20 }
+    ]
+  },
+  'demon-2': {
+    questionTypes: [
+      { type: 'pattern', weight: 40 },
+      { type: 'logic', weight: 30 },
+      { type: 'word-problem', weight: 30 }
+    ]
+  },
+  'demon-3': {
+    questionTypes: [
+      { type: 'logic', weight: 30 },
+      { type: 'pattern', weight: 25 },
       { type: 'multiplication', weight: 15 },
       { type: 'division', weight: 15 },
-      { type: 'word-problem', weight: 20 }
+      { type: 'word-problem', weight: 15 }
     ]
   }
 };
 
 export class ComprehensiveQuestionGenerator {
+  // 获取关卡的中文题型标签
+  static getStageQuestionLabels(stageId: string): string[] {
+    const config = STAGE_CONFIGS[stageId];
+    if (!config) {
+      return ['混合运算'];
+    }
+    
+    // 获取该关卡的所有题型并转换为中文标签
+    const types = config.questionTypes.map(qt => qt.type);
+    const uniqueTypes = [...new Set(types)];
+    return uniqueTypes.map(type => QUESTION_TYPE_LABELS[type] || type);
+  }
+  
   // 根据关卡和难度生成题目
   static generateQuestion(stageId: string, characterType: 'josh' | 'abby' | 'vince' | string, baseDifficulty: Difficulty): Question {
     const config = STAGE_CONFIGS[stageId];

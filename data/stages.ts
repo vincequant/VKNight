@@ -1,5 +1,6 @@
 import { Stage, Enemy } from '@/types/game';
 import { ethToWei } from '@/utils/ethereum';
+import { ComprehensiveQuestionGenerator } from '@/lib/comprehensiveQuestionGenerator';
 
 export const stages: Stage[] = [
   // 森林区域 - 基础数学
@@ -18,7 +19,7 @@ export const stages: Stage[] = [
     expReward: 50,
     entranceFee: ethToWei(0),
     description: '基础加减法训练',
-    questionTypes: ['加法', '减法', '比大小'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('forest-1'),
     icon: '🌲',
     order: 1,
     locked: false
@@ -38,7 +39,7 @@ export const stages: Stage[] = [
     expReward: 80,
     entranceFee: ethToWei(5),
     description: '数字规律与简单逻辑',
-    questionTypes: ['找规律', '排序', '分类'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('forest-2'),
     icon: '🌳',
     order: 2,
     locked: true
@@ -58,7 +59,7 @@ export const stages: Stage[] = [
     expReward: 120,
     entranceFee: ethToWei(10),
     description: '应用题与综合运算',
-    questionTypes: ['应用题', '混合运算', '时间'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('forest-3'),
     icon: '🧚',
     order: 3,
     locked: true
@@ -80,7 +81,7 @@ export const stages: Stage[] = [
     expReward: 200,
     entranceFee: ethToWei(20),
     description: '进位加法与借位减法',
-    questionTypes: ['进位加法', '借位减法', '数列'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('mountain-1'),
     icon: '⛰️',
     order: 4,
     locked: true
@@ -100,7 +101,7 @@ export const stages: Stage[] = [
     expReward: 300,
     entranceFee: ethToWei(50),
     description: '乘法入门与图形规律',
-    questionTypes: ['乘法表', '图形规律', '逻辑推理'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('mountain-2'),
     icon: '🏔️',
     order: 5,
     locked: true
@@ -120,7 +121,7 @@ export const stages: Stage[] = [
     expReward: 400,
     entranceFee: ethToWei(100),
     description: '混合运算与复杂模式',
-    questionTypes: ['混合运算', '复杂规律', '空间想象'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('mountain-3'),
     icon: '🏔️',
     order: 6,
     locked: true
@@ -142,7 +143,7 @@ export const stages: Stage[] = [
     expReward: 500,
     entranceFee: ethToWei(200),
     description: '乘法进阶与除法入门',
-    questionTypes: ['两位数乘法', '除法', '倍数关系'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('volcano-1'),
     icon: '🌋',
     order: 7,
     locked: true
@@ -162,7 +163,7 @@ export const stages: Stage[] = [
     expReward: 700,
     entranceFee: ethToWei(400),
     description: '分数初步与比例关系',
-    questionTypes: ['分数', '比例', '数据分析'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('volcano-2'),
     icon: '🐲',
     order: 8,
     locked: true
@@ -182,7 +183,7 @@ export const stages: Stage[] = [
     expReward: 900,
     entranceFee: ethToWei(800),
     description: '高级乘除与应用题',
-    questionTypes: ['复杂乘除', '速度问题', '面积体积'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('volcano-3'),
     icon: '🔥',
     order: 9,
     locked: true
@@ -204,7 +205,7 @@ export const stages: Stage[] = [
     expReward: 1000,
     entranceFee: ethToWei(1000),
     description: '生活数学与金钱时间',
-    questionTypes: ['购物问题', '时间计算', '路程问题'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('dungeon-1'),
     icon: '🏰',
     order: 10,
     locked: true
@@ -224,7 +225,7 @@ export const stages: Stage[] = [
     expReward: 1200,
     entranceFee: ethToWei(1500),
     description: '逻辑谜题与策略思维',
-    questionTypes: ['逻辑谜题', '数独', '策略游戏'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('dungeon-2'),
     icon: '🗝️',
     order: 11,
     locked: true
@@ -244,7 +245,7 @@ export const stages: Stage[] = [
     expReward: 1500,
     entranceFee: ethToWei(2000),
     description: '函数思维与组合排列',
-    questionTypes: ['函数关系', '排列组合', '概率初步'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('dungeon-3'),
     icon: '☠️',
     order: 12,
     locked: true
@@ -266,7 +267,7 @@ export const stages: Stage[] = [
     expReward: 1800,
     entranceFee: ethToWei(3000),
     description: '代数思维与方程初步',
-    questionTypes: ['简单方程', '代数式', '找未知数'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('demon-1'),
     icon: '🔥',
     order: 13,
     locked: true
@@ -286,7 +287,7 @@ export const stages: Stage[] = [
     expReward: 2200,
     entranceFee: ethToWei(5000),
     description: '高级模式与抽象思维',
-    questionTypes: ['复杂数列', '递归思想', '编码解码'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('demon-2'),
     icon: '⛪',
     order: 14,
     locked: true
@@ -304,7 +305,7 @@ export const stages: Stage[] = [
     expReward: 5000,
     entranceFee: ethToWei(10000),
     description: '终极挑战综合测试',
-    questionTypes: ['所有题型', '最高难度', '限时挑战'],
+    questionTypes: ComprehensiveQuestionGenerator.getStageQuestionLabels('demon-3'),
     icon: '👿',
     order: 15,
     locked: true
