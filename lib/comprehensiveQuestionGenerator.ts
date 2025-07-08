@@ -233,7 +233,7 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
 
 export class ComprehensiveQuestionGenerator {
   // 根据关卡和难度生成题目
-  static generateQuestion(stageId: string, characterType: 'josh' | 'abby', baseDifficulty: Difficulty): Question {
+  static generateQuestion(stageId: string, characterType: 'josh' | 'abby' | 'vince' | string, baseDifficulty: Difficulty): Question {
     const config = STAGE_CONFIGS[stageId];
     if (!config) {
       // 如果没有配置，使用默认的四则运算
@@ -245,14 +245,20 @@ export class ComprehensiveQuestionGenerator {
     
     // 根据角色调整难度
     let actualDifficulty = baseDifficulty;
-    if (characterType === 'abby' && baseDifficulty !== 'EASY') {
+    
+    // Vince始终使用最低难度（但在高级关卡仍会遇到复杂题型）
+    if (characterType === 'vince') {
+      actualDifficulty = 'EASY';
+    } else if (characterType === 'abby' && baseDifficulty !== 'EASY') {
       const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
       const currentIndex = difficulties.indexOf(baseDifficulty);
       actualDifficulty = difficulties[Math.max(0, currentIndex - 1)];
     }
     
-    // 根据关卡进一步调整难度
-    actualDifficulty = this.adjustDifficultyByStage(stageId, actualDifficulty);
+    // 根据关卡进一步调整难度（但对vince保持EASY）
+    if (characterType !== 'vince') {
+      actualDifficulty = this.adjustDifficultyByStage(stageId, actualDifficulty);
+    }
     
     // 生成题目
     return this.generateQuestionByType(questionType.type, actualDifficulty, questionType.config);

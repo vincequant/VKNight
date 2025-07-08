@@ -156,7 +156,7 @@ export const stages: Stage[] = [
     entranceFee: ethToWei(200),
     description: '炽热的地下熔岩世界',
     icon: '🌋',
-    order: 8,
+    order: 6,
     locked: true
   },
   {
@@ -175,7 +175,7 @@ export const stages: Stage[] = [
     entranceFee: ethToWei(500),
     description: '传说中巨龙栖息的终极挑战',
     icon: '🐲',
-    order: 9,
+    order: 7,
     locked: true
   },
   
@@ -196,7 +196,7 @@ export const stages: Stage[] = [
     entranceFee: ethToWei(1000),
     description: '充满亡灵的恐怖地下城',
     icon: '🏰',
-    order: 10,
+    order: 8,
     locked: true
   },
   
@@ -217,7 +217,7 @@ export const stages: Stage[] = [
     entranceFee: ethToWei(2000),
     description: '最终决战！挑战强大的魔王',
     icon: '👿',
-    order: 11,
+    order: 9,
     locked: true
   }
 ];
