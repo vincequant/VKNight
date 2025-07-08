@@ -5,30 +5,39 @@ export class QuestionGenerator {
     return Math.random().toString(36).substring(2, 15);
   }
 
-  static generateAddition(difficulty: Difficulty): Question {
+  static generateAddition(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number;
     
-    switch (difficulty) {
-      case 'EASY':
-        // 基础加法：1-20
-        num1 = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
-        break;
-      case 'MEDIUM':
-        // 中等加法：20-100
-        num1 = Math.floor(Math.random() * 40) + 20;
-        num2 = Math.floor(Math.random() * 40) + 20;
-        break;
-      case 'HARD':
-        // 困难加法：50-200
-        num1 = Math.floor(Math.random() * 100) + 50;
-        num2 = Math.floor(Math.random() * 100) + 50;
-        break;
-      case 'EXPERT':
-        // 专家加法：100-999（三位数加法）
-        num1 = Math.floor(Math.random() * 900) + 100;
-        num2 = Math.floor(Math.random() * 900) + 100;
-        break;
+    // 使用配置的范围或默认值
+    const minNum = config?.minNum;
+    const maxNum = config?.maxNum;
+    
+    if (minNum !== undefined && maxNum !== undefined) {
+      num1 = Math.floor(Math.random() * (maxNum - minNum)) + minNum;
+      num2 = Math.floor(Math.random() * (maxNum - minNum)) + minNum;
+    } else {
+      switch (difficulty) {
+        case 'EASY':
+          // 基础加法：1-20
+          num1 = Math.floor(Math.random() * 10) + 1;
+          num2 = Math.floor(Math.random() * 10) + 1;
+          break;
+        case 'MEDIUM':
+          // 中等加法：20-100
+          num1 = Math.floor(Math.random() * 40) + 20;
+          num2 = Math.floor(Math.random() * 40) + 20;
+          break;
+        case 'HARD':
+          // 困难加法：50-200
+          num1 = Math.floor(Math.random() * 100) + 50;
+          num2 = Math.floor(Math.random() * 100) + 50;
+          break;
+        case 'EXPERT':
+          // 专家加法：100-999（三位数加法）
+          num1 = Math.floor(Math.random() * 900) + 100;
+          num2 = Math.floor(Math.random() * 900) + 100;
+          break;
+      }
     }
 
     const answer = num1 + num2;
@@ -45,7 +54,7 @@ export class QuestionGenerator {
     };
   }
 
-  static generateSubtraction(difficulty: Difficulty): Question {
+  static generateSubtraction(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number;
     
     switch (difficulty) {
@@ -85,7 +94,7 @@ export class QuestionGenerator {
     };
   }
 
-  static generateMultiplication(difficulty: Difficulty): Question {
+  static generateMultiplication(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number;
     
     switch (difficulty) {
@@ -124,7 +133,7 @@ export class QuestionGenerator {
     };
   }
 
-  static generateDivision(difficulty: Difficulty): Question {
+  static generateDivision(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number, answer: number;
     
     switch (difficulty) {

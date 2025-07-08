@@ -75,6 +75,7 @@ export interface Question {
   hint?: string;
   explanation?: string;
   category?: QuestionCategory;
+  timeLimit?: number; // 时间限制（秒）
 }
 
 export type QuestionType = 

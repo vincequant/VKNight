@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QuestionGenerator } from '@/lib/questionGenerator';
-import { ComprehensiveQuestionGenerator } from '@/lib/comprehensiveQuestionGenerator';
+import { ComprehensiveQuestionGeneratorV2 } from '@/lib/comprehensiveQuestionGeneratorV2';
 import { soundManager } from '@/lib/sounds';
 import { Question, Difficulty } from '@/types';
 import { Character, Stage, Enemy as GameEnemy, calculateCharacterStats, BattleState, GameProgress } from '@/types/game';
@@ -12,6 +12,7 @@ import { ACHIEVEMENTS, Achievement, STORY_SEGMENTS, StorySegment } from '@/data/
 import { getConsumableById, Consumable } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
 import CharacterAvatar from '@/components/CharacterAvatar';
+import QuestionTimer from '@/components/QuestionTimer';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei, formatWeiCompact } from '@/utils/ethereum';
@@ -190,7 +191,7 @@ function GameContent() {
       const characterType = user as 'josh' | 'abby';
       
       // 使用新的综合题目生成器
-      const question = ComprehensiveQuestionGenerator.generateQuestion(
+      const question = ComprehensiveQuestionGeneratorV2.generateQuestion(
         stageId,
         characterType,
         baseDifficulty
@@ -208,6 +209,38 @@ function GameContent() {
   const generateNewQuestion = () => {
     if (!currentUser) return;
     generateNewQuestionForUser(currentUser);
+  };
+
+  const handleTimeout = () => {
+    // 超时当作答错处理
+    if (!currentQuestion || battleState.mode !== 'question') return;
+    
+    soundManager.play('incorrect');
+    
+    // 更新进度
+    const newProgress = { ...gameProgress };
+    newProgress.totalQuestionsAnswered++;
+    newProgress.currentStreak = 0;
+    setGameProgress(newProgress);
+    setComboMultiplier(1);
+    
+    // 敌人攻击
+    setBattleState({ ...battleState, mode: 'enemy-turn' });
+    
+    // 执行敌人攻击动画
+    setTimeout(() => {
+      if (currentEnemy && character) {
+        const damage = Math.max(1, currentEnemy.attack - character.defense);
+        dealDamageToPlayer(damage);
+        
+        setTimeout(() => {
+          if (character.hp - damage > 0) {
+            generateNewQuestion();
+            setBattleState({ ...battleState, mode: 'question' });
+          }
+        }, 1000);
+      }
+    }, 500);
   };
 
   const handleAnswer = (answer: number | string) => {
@@ -726,7 +759,16 @@ function GameContent() {
         {/* 题目区域 */}
         <div className="bg-black/80 border-t-2 border-yellow-600 p-6">
           {battleState.mode === 'question' && currentQuestion && (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto relative">
+              {/* 倒计时组件 */}
+              {currentQuestion.timeLimit && (
+                <QuestionTimer
+                  timeLimit={currentQuestion.timeLimit}
+                  onTimeout={handleTimeout}
+                  isActive={battleState.mode === 'question'}
+                />
+              )}
+              
               <div className="text-center mb-4">
                 <h2 className="text-3xl font-bold text-yellow-300 mb-2">
                   {currentQuestion.question}
