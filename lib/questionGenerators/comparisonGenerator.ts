@@ -29,32 +29,33 @@ export class ComparisonGenerator {
           }
           break;
         
-      case 'MEDIUM':
-        // 1-100的数字比较
-        num1 = Math.floor(Math.random() * 100) + 1;
-        num2 = Math.floor(Math.random() * 100) + 1;
-        while (num1 === num2) {
+        case 'MEDIUM':
+          // 1-100的数字比较
+          num1 = Math.floor(Math.random() * 100) + 1;
           num2 = Math.floor(Math.random() * 100) + 1;
-        }
-        break;
-        
-      case 'HARD':
-        // 三位数比较
-        num1 = Math.floor(Math.random() * 900) + 100;
-        num2 = Math.floor(Math.random() * 900) + 100;
-        break;
-        
-      case 'EXPERT':
-        // 四位数或小数比较
-        if (Math.random() > 0.5) {
-          num1 = Math.floor(Math.random() * 9000) + 1000;
-          num2 = Math.floor(Math.random() * 9000) + 1000;
-        } else {
-          // 小数比较
-          num1 = Math.round((Math.random() * 10 + 1) * 10) / 10;
-          num2 = Math.round((Math.random() * 10 + 1) * 10) / 10;
-        }
-        break;
+          while (num1 === num2) {
+            num2 = Math.floor(Math.random() * 100) + 1;
+          }
+          break;
+          
+        case 'HARD':
+          // 三位数比较
+          num1 = Math.floor(Math.random() * 900) + 100;
+          num2 = Math.floor(Math.random() * 900) + 100;
+          break;
+          
+        case 'EXPERT':
+          // 四位数或小数比较
+          if (Math.random() > 0.5) {
+            num1 = Math.floor(Math.random() * 9000) + 1000;
+            num2 = Math.floor(Math.random() * 9000) + 1000;
+          } else {
+            // 小数比较
+            num1 = Math.round((Math.random() * 10 + 1) * 10) / 10;
+            num2 = Math.round((Math.random() * 10 + 1) * 10) / 10;
+          }
+          break;
+      }
     }
     
     if (num1 > num2) {

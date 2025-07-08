@@ -57,27 +57,40 @@ export class QuestionGenerator {
   static generateSubtraction(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number;
     
-    switch (difficulty) {
-      case 'EASY':
-        // 基础减法：20以内，结果为正
-        num1 = Math.floor(Math.random() * 15) + 5;
-        num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
-        break;
-      case 'MEDIUM':
-        // 中等减法：100以内
-        num1 = Math.floor(Math.random() * 60) + 40;
-        num2 = Math.floor(Math.random() * (num1 - 10)) + 1;
-        break;
-      case 'HARD':
-        // 困难减法：200以内，可能需要借位
-        num1 = Math.floor(Math.random() * 100) + 100;
-        num2 = Math.floor(Math.random() * 80) + 20;
-        break;
-      case 'EXPERT':
-        // 专家减法：1000以内，多次借位
-        num1 = Math.floor(Math.random() * 700) + 300;
-        num2 = Math.floor(Math.random() * 200) + 100;
-        break;
+    // 使用配置的范围或默认值
+    const minNum = config?.minNum;
+    const maxNum = config?.maxNum;
+    
+    if (minNum !== undefined && maxNum !== undefined) {
+      num1 = Math.floor(Math.random() * (maxNum - minNum)) + minNum;
+      num2 = Math.floor(Math.random() * (num1 - minNum)) + minNum;
+      // 确保结果为正
+      if (num2 >= num1) {
+        [num1, num2] = [num2, num1];
+      }
+    } else {
+      switch (difficulty) {
+        case 'EASY':
+          // 基础减法：20以内，结果为正
+          num1 = Math.floor(Math.random() * 15) + 5;
+          num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+          break;
+        case 'MEDIUM':
+          // 中等减法：100以内
+          num1 = Math.floor(Math.random() * 60) + 40;
+          num2 = Math.floor(Math.random() * (num1 - 10)) + 1;
+          break;
+        case 'HARD':
+          // 困难减法：200以内，可能需要借位
+          num1 = Math.floor(Math.random() * 100) + 100;
+          num2 = Math.floor(Math.random() * 80) + 20;
+          break;
+        case 'EXPERT':
+          // 专家减法：1000以内，多次借位
+          num1 = Math.floor(Math.random() * 700) + 300;
+          num2 = Math.floor(Math.random() * 200) + 100;
+          break;
+      }
     }
 
     const answer = num1 - num2;
@@ -97,27 +110,38 @@ export class QuestionGenerator {
   static generateMultiplication(difficulty: Difficulty, config?: any): Question {
     let num1: number, num2: number;
     
-    switch (difficulty) {
-      case 'EASY':
-        // 乘法表基础：1-5
-        num1 = Math.floor(Math.random() * 5) + 1;
-        num2 = Math.floor(Math.random() * 5) + 1;
-        break;
-      case 'MEDIUM':
-        // 乘法表进阶：2-10
-        num1 = Math.floor(Math.random() * 9) + 2;
-        num2 = Math.floor(Math.random() * 9) + 2;
-        break;
-      case 'HARD':
-        // 两位数乘一位数：10-20 × 2-9
-        num1 = Math.floor(Math.random() * 11) + 10;
-        num2 = Math.floor(Math.random() * 8) + 2;
-        break;
-      case 'EXPERT':
-        // 两位数乘两位数：10-50 × 10-20
-        num1 = Math.floor(Math.random() * 41) + 10;
-        num2 = Math.floor(Math.random() * 11) + 10;
-        break;
+    // 使用配置的范围或默认值
+    const minNum = config?.minNum;
+    const maxNum = config?.maxNum;
+    
+    if (minNum !== undefined && maxNum !== undefined) {
+      // 如果指定了范围，使用较小的数字避免结果过大
+      const range = Math.min(maxNum - minNum, 20);
+      num1 = Math.floor(Math.random() * range) + minNum;
+      num2 = Math.floor(Math.random() * Math.min(10, range)) + 1;
+    } else {
+      switch (difficulty) {
+        case 'EASY':
+          // 乘法表基础：1-5
+          num1 = Math.floor(Math.random() * 5) + 1;
+          num2 = Math.floor(Math.random() * 5) + 1;
+          break;
+        case 'MEDIUM':
+          // 乘法表进阶：2-10
+          num1 = Math.floor(Math.random() * 9) + 2;
+          num2 = Math.floor(Math.random() * 9) + 2;
+          break;
+        case 'HARD':
+          // 两位数乘一位数：10-20 × 2-9
+          num1 = Math.floor(Math.random() * 11) + 10;
+          num2 = Math.floor(Math.random() * 8) + 2;
+          break;
+        case 'EXPERT':
+          // 两位数乘两位数：10-50 × 10-20
+          num1 = Math.floor(Math.random() * 41) + 10;
+          num2 = Math.floor(Math.random() * 11) + 10;
+          break;
+      }
     }
 
     const answer = num1 * num2;
