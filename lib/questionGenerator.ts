@@ -21,6 +21,12 @@ export class QuestionGenerator {
         num1 = double;
         num2 = single;
       }
+    } else if (config?.doublePlusSingle) {
+      // 双位数(10-20)+个位数
+      const double = Math.floor(Math.random() * 11) + 10; // 10-20
+      const single = Math.floor(Math.random() * 9) + 1; // 1-9
+      num1 = double;
+      num2 = single;
     } else if (config?.minNum !== undefined && config?.maxNum !== undefined) {
       // 使用配置的范围
       num1 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
@@ -71,7 +77,11 @@ export class QuestionGenerator {
     const minNum = config?.minNum;
     const maxNum = config?.maxNum;
     
-    if (maxNum !== undefined && !minNum) {
+    if (config?.doubleMinusSingle) {
+      // 双位数(10-20)-个位数
+      num1 = Math.floor(Math.random() * 11) + 10; // 10-20
+      num2 = Math.floor(Math.random() * Math.min(9, num1 - 1)) + 1; // 1-9, 确保结果为正
+    } else if (maxNum !== undefined && !minNum) {
       // 如果只设置了maxNum（用于单位数减法）
       num1 = Math.floor(Math.random() * (maxNum - 1)) + 2; // 2到maxNum
       num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // 1到num1-1

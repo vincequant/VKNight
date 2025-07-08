@@ -43,31 +43,27 @@ interface StageConfig {
 
 // 重新设计的关卡配置，确保难度递进
 const STAGE_CONFIGS: Record<string, StageConfig> = {
-  // 第一关 - Josh版本：双位数加法、单位数加减法
+  // 第一关 - Josh版本：双位数(10-20)加减法
   'forest-1': {
     questionTypes: [
-      // 双位数加法 (10-99的加法)
-      { type: 'addition', weight: 35, config: { minNum: 10, maxNum: 99 } },
-      // 单位数+双位数加法 (1-9 + 10-99)
-      { type: 'addition', weight: 25, config: { singlePlusDouble: true } },
-      // 单位数减法 (1-9的减法)
-      { type: 'subtraction', weight: 40, config: { maxNum: 9 } }
+      // 双位数(10-20)+双位数(10-20)
+      { type: 'addition', weight: 50, config: { minNum: 10, maxNum: 20 } },
+      // 双位数(10-20)-个位数
+      { type: 'subtraction', weight: 50, config: { doubleMinusSingle: true } }
     ],
-    difficultyOverride: 'EASY',
-    baseTimeLimit: 60
+    difficultyOverride: 'EASY'
   },
-  // 第一关 - Abby版本：更简单的加减法
+  // 第一关 - Abby版本：个位数加减法
   'forest-1-abby': {
     questionTypes: [
-      // 单位数加法 (1-9的加法)
-      { type: 'addition', weight: 40, config: { maxNum: 9 } },
-      // 10-20的加法
-      { type: 'addition', weight: 30, config: { minNum: 10, maxNum: 20 } },
-      // 单位数减法 (1-9的减法)
+      // 个位数加法 (1-9的加法)
+      { type: 'addition', weight: 35, config: { maxNum: 9 } },
+      // 双位数(10-20)+个位数
+      { type: 'addition', weight: 35, config: { doublePlusSingle: true } },
+      // 个位数减法 (1-9的减法)
       { type: 'subtraction', weight: 30, config: { maxNum: 9 } }
     ],
-    difficultyOverride: 'EASY',
-    baseTimeLimit: 90 // 更多时间
+    difficultyOverride: 'EASY'
   },
   // 第二关 - Josh版本：双位数减法、复杂加法、简单乘法、逻辑题
   'forest-2': {
@@ -81,8 +77,7 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
       // 逻辑推理题
       { type: 'logic', weight: 20, minDifficulty: 'EASY', maxDifficulty: 'EASY' }
     ],
-    difficultyOverride: 'EASY',
-    baseTimeLimit: 50
+    difficultyOverride: 'EASY'
   },
   // 第二关 - Abby版本：简单减法、基础乘法
   'forest-2-abby': {
@@ -94,8 +89,7 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
       // 简单乘法 (1-3的乘法)
       { type: 'multiplication', weight: 30, config: { maxNum: 3 } }
     ],
-    difficultyOverride: 'EASY',
-    baseTimeLimit: 75 // 更多时间
+    difficultyOverride: 'EASY'
   },
   'forest-3': {
     questionTypes: [
@@ -298,14 +292,6 @@ export class ComprehensiveQuestionGeneratorV2 {
     
     // 生成题目
     let question = this.generateQuestionByType(questionConfig.type, actualDifficulty, questionConfig.config);
-    
-    // 应用时间限制
-    if (config.baseTimeLimit && !question.timeLimit) {
-      question.timeLimit = config.baseTimeLimit;
-    }
-    if (questionConfig.timeLimit) {
-      question.timeLimit = questionConfig.timeLimit;
-    }
     
     return question;
   }

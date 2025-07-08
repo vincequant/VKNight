@@ -12,7 +12,6 @@ import { ACHIEVEMENTS, Achievement, STORY_SEGMENTS, StorySegment } from '@/data/
 import { getConsumableById, Consumable } from '@/data/consumables';
 import ETHDisplay from '@/components/ETHDisplay';
 import CharacterAvatar from '@/components/CharacterAvatar';
-import QuestionTimer from '@/components/QuestionTimer';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei, formatWeiCompact } from '@/utils/ethereum';
@@ -777,15 +776,6 @@ function GameContent() {
         <div className="bg-black/80 border-t-2 border-yellow-600 p-6">
           {battleState.mode === 'question' && currentQuestion && (
             <div className="max-w-4xl mx-auto relative">
-              {/* 倒计时组件 */}
-              {currentQuestion.timeLimit && (
-                <QuestionTimer
-                  timeLimit={currentQuestion.timeLimit}
-                  onTimeout={handleTimeout}
-                  isActive={battleState.mode === 'question'}
-                />
-              )}
-              
               <div className="text-center mb-4">
                 <h2 className="text-3xl font-bold text-yellow-300 mb-2">
                   {currentQuestion.question}

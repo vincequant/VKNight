@@ -18,7 +18,7 @@ export const stages: Stage[] = [
     ethReward: ethToWei(1),
     expReward: 50,
     entranceFee: ethToWei(0),
-    description: '双位数加法、单位数加减法训练',
+    description: '基础加减法训练',
     questionTypes: STAGE_QUESTION_LABELS['forest-1'],
     icon: '🌲',
     order: 1,
@@ -28,6 +28,7 @@ export const stages: Stage[] = [
     id: 'forest-2',
     name: '智慧古树',
     area: '森林',
+    comingSoon: true,
     difficulty: 2,
     levelRequirement: 3,
     enemies: [
