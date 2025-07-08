@@ -304,9 +304,7 @@ export class ComprehensiveQuestionGeneratorV2 {
       
       // 比较与逻辑
       case 'comparison':
-        return Math.random() > 0.5
-          ? ComparisonGenerator.generateComparison(difficulty, config)
-          : ComparisonGenerator.generateSorting(difficulty, config);
+        return ComparisonGenerator.generateComparison(difficulty, config);
       case 'logic':
         return LogicGenerator.generateLogicPuzzle(difficulty);
       

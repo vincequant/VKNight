@@ -255,9 +255,7 @@ export class ComprehensiveQuestionGenerator {
           ? PatternGenerator.generateNumberPattern(difficulty)
           : PatternGenerator.generateShapePattern(difficulty);
       case 'comparison':
-        return Math.random() > 0.5
-          ? ComparisonGenerator.generateComparison(difficulty)
-          : ComparisonGenerator.generateSorting(difficulty);
+        return ComparisonGenerator.generateComparison(difficulty);
       case 'logic':
         return LogicGenerator.generateLogicPuzzle(difficulty);
       case 'sequence':
