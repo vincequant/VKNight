@@ -1,6 +1,6 @@
 export interface Character {
   id: string;
-  type: 'josh' | 'abby';
+  type: 'josh' | 'abby' | 'vince' | string;
   level: number;
   experience: number;
   expToNextLevel: number;

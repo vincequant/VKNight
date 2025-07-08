@@ -78,13 +78,36 @@ function GameContent() {
     
     // Initialize character
     const initCharacter = async () => {
+      console.log('Initializing character for user:', user);
+      
       // Special handling for vince (god mode)
       if (user === 'vince') {
         const vinceData = localStorage.getItem('character_vince');
+        console.log('Vince data from localStorage:', vinceData);
         if (vinceData) {
-          const vinceChar = deserializeCharacter(vinceData);
-          setCharacter(calculateCharacterStats(vinceChar));
-          return;
+          try {
+            const vinceChar = deserializeCharacter(vinceData);
+            console.log('Deserialized vince character:', vinceChar);
+            const calculatedChar = calculateCharacterStats(vinceChar);
+            console.log('Calculated vince character:', calculatedChar);
+            setCharacter(calculatedChar);
+            
+            // Set first enemy after character is loaded
+            if (stage.enemies.length > 0) {
+              setCurrentEnemy({ ...stage.enemies[0] });
+              console.log('Set first enemy:', stage.enemies[0]);
+            }
+            
+            // Generate question after everything is loaded
+            setTimeout(() => {
+              console.log('Generating question for vince');
+              generateNewQuestionForUser('vince', 'EASY');
+            }, 100);
+            
+            return;
+          } catch (error) {
+            console.error('Error deserializing vince character:', error);
+          }
         }
       }
       
@@ -656,7 +679,11 @@ function GameContent() {
               
               {/* 玩家血条 */}
               <div className="w-48">
-                <div className="text-white text-sm mb-1">{character.type === 'josh' ? 'Josh' : 'Abby'}</div>
+                <div className="text-white text-sm mb-1">
+                  {character.type === 'josh' ? 'Josh' : 
+                   character.type === 'abby' ? 'Abby' : 
+                   character.type === 'vince' ? 'Vince' : character.type}
+                </div>
                 <div className="bg-gray-700 rounded-full h-4 overflow-hidden">
                   <motion.div
                     initial={{ width: '100%' }}
