@@ -13,6 +13,7 @@ import WorldMap from '@/components/WorldMap';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei } from '@/utils/ethereum';
 import { deserializeCharacter, loadCharacterWithCloud, saveCharacter } from '@/utils/characterStorage';
+import { STAGE_QUESTION_LABELS } from '@/data/stageLabels';
 
 export default function HubPage() {
   const [character, setCharacter] = useState<Character | null>(null);
@@ -501,21 +502,30 @@ export default function HubPage() {
                     </div>
 
                     {/* Question Types */}
-                    {stage.questionTypes && stage.questionTypes.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-700">
-                        <p className="text-xs text-gray-400 mb-2">题型标签:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {stage.questionTypes.map((type, i) => (
-                            <span 
-                              key={i} 
-                              className="bg-gray-700 text-xs px-2 py-1 rounded-full text-yellow-300"
-                            >
-                              {type}
-                            </span>
-                          ))}
+                    {(() => {
+                      // 获取角色特定的题型标签
+                      const labelKey = character.type === 'abby' && 
+                        (stage.id === 'forest-1' || stage.id === 'forest-2') 
+                        ? `${stage.id}-abby` 
+                        : stage.id;
+                      const labels = STAGE_QUESTION_LABELS[labelKey] || stage.questionTypes || [];
+                      
+                      return labels.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-700">
+                          <p className="text-xs text-gray-400 mb-2">题型标签:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {labels.map((type, i) => (
+                              <span 
+                                key={i} 
+                                className="bg-gray-700 text-xs px-2 py-1 rounded-full text-yellow-300"
+                              >
+                                {type}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Enemy Preview */}
                     <div className="mt-3 pt-3 border-t border-gray-700">

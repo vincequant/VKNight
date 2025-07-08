@@ -230,7 +230,10 @@ function GameContent() {
     // 执行敌人攻击动画
     setTimeout(() => {
       if (currentEnemy && character) {
-        const damage = Math.max(1, currentEnemy.attack - character.defense);
+        // Abby 受到的伤害减少50%
+        const damageMultiplier = character.type === 'abby' ? 0.5 : 1.0;
+        const baseDamage = Math.max(1, currentEnemy.attack - character.defense);
+        const damage = Math.max(1, Math.floor(baseDamage * damageMultiplier));
         const newHp = Math.max(0, character.hp - damage);
         const updatedChar = { ...character, hp: newHp };
         
@@ -362,8 +365,11 @@ function GameContent() {
   const enemyAttack = () => {
     if (!character || !currentEnemy) return;
     
+    // Abby 受到的伤害减少50%
+    const damageMultiplier = character.type === 'abby' ? 0.5 : 1.0;
     const baseDamage = Math.max(1, currentEnemy.attack - Math.floor(character.defense / 2));
-    const damage = baseDamage + Math.floor(Math.random() * 5);
+    const randomDamage = baseDamage + Math.floor(Math.random() * 5);
+    const damage = Math.max(1, Math.floor(randomDamage * damageMultiplier));
     const newHp = Math.max(0, character.hp - damage);
     const updatedChar = { ...character, hp: newHp };
     setCharacter(updatedChar);

@@ -43,7 +43,7 @@ interface StageConfig {
 
 // 重新设计的关卡配置，确保难度递进
 const STAGE_CONFIGS: Record<string, StageConfig> = {
-  // 第一关 - 双位数加法、单位数加减法
+  // 第一关 - Josh版本：双位数加法、单位数加减法
   'forest-1': {
     questionTypes: [
       // 双位数加法 (10-99的加法)
@@ -56,7 +56,20 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
     difficultyOverride: 'EASY',
     baseTimeLimit: 60
   },
-  // 第二关 - 双位数减法、复杂加法、简单乘法、逻辑题
+  // 第一关 - Abby版本：更简单的加减法
+  'forest-1-abby': {
+    questionTypes: [
+      // 单位数加法 (1-9的加法)
+      { type: 'addition', weight: 40, config: { maxNum: 9 } },
+      // 10-20的加法
+      { type: 'addition', weight: 30, config: { minNum: 10, maxNum: 20 } },
+      // 单位数减法 (1-9的减法)
+      { type: 'subtraction', weight: 30, config: { maxNum: 9 } }
+    ],
+    difficultyOverride: 'EASY',
+    baseTimeLimit: 90 // 更多时间
+  },
+  // 第二关 - Josh版本：双位数减法、复杂加法、简单乘法、逻辑题
   'forest-2': {
     questionTypes: [
       // 双位数减法
@@ -70,6 +83,19 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
     ],
     difficultyOverride: 'EASY',
     baseTimeLimit: 50
+  },
+  // 第二关 - Abby版本：简单减法、基础乘法
+  'forest-2-abby': {
+    questionTypes: [
+      // 20以内的减法
+      { type: 'subtraction', weight: 35, config: { maxNum: 20 } },
+      // 双位数加法 (10-50)
+      { type: 'addition', weight: 35, config: { minNum: 10, maxNum: 50 } },
+      // 简单乘法 (1-3的乘法)
+      { type: 'multiplication', weight: 30, config: { maxNum: 3 } }
+    ],
+    difficultyOverride: 'EASY',
+    baseTimeLimit: 75 // 更多时间
   },
   'forest-3': {
     questionTypes: [
@@ -201,8 +227,14 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
 
 export class ComprehensiveQuestionGeneratorV2 {
   // 获取关卡的中文题型标签
-  static getStageQuestionLabels(stageId: string): string[] {
-    const config = STAGE_CONFIGS[stageId];
+  static getStageQuestionLabels(stageId: string, characterType?: 'josh' | 'abby' | 'vince' | string): string[] {
+    // 检查是否有角色特定的配置
+    let configKey = stageId;
+    if (characterType === 'abby' && STAGE_CONFIGS[`${stageId}-abby`]) {
+      configKey = `${stageId}-abby`;
+    }
+    
+    const config = STAGE_CONFIGS[configKey];
     if (!config) {
       return ['混合运算'];
     }
@@ -214,7 +246,13 @@ export class ComprehensiveQuestionGeneratorV2 {
   
   // 根据关卡和难度生成题目
   static generateQuestion(stageId: string, characterType: 'josh' | 'abby' | 'vince' | string, baseDifficulty: Difficulty): Question {
-    const config = STAGE_CONFIGS[stageId];
+    // 检查是否有角色特定的配置
+    let configKey = stageId;
+    if (characterType === 'abby' && STAGE_CONFIGS[`${stageId}-abby`]) {
+      configKey = `${stageId}-abby`;
+    }
+    
+    const config = STAGE_CONFIGS[configKey];
     if (!config) {
       return this.generateDefaultQuestion(baseDifficulty);
     }
@@ -236,12 +274,8 @@ export class ComprehensiveQuestionGeneratorV2 {
       } else {
         actualDifficulty = 'HARD';
       }
-    } else if (characterType === 'abby') {
-      // Abby 难度稍低
-      const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
-      const currentIndex = difficulties.indexOf(actualDifficulty);
-      actualDifficulty = difficulties[Math.max(0, currentIndex - 1)];
     }
+    // Abby 现在使用特定的配置，不需要额外调整
     
     // 应用配置的难度限制
     if (questionConfig.minDifficulty) {
