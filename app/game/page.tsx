@@ -187,21 +187,49 @@ function GameContent() {
     try {
       let types: ('addition' | 'subtraction' | 'multiplication' | 'division')[];
       
-      // 根据基础难度决定题目类型
-      const baseDifficulty = difficultyOverride || difficulty;
-      if (baseDifficulty === 'EASY' || baseDifficulty === 'MEDIUM') {
+      // 根据关卡进度决定题目类型和难度
+      const stageNumber = parseInt(stageId.split('-')[1] || '1');
+      const isForest = stageId.includes('forest');
+      const isMountain = stageId.includes('mountain');
+      const isVolcano = stageId.includes('volcano');
+      const isDungeon = stageId.includes('dungeon');
+      const isDemon = stageId.includes('demon');
+      const isFinalBoss = stageId === 'final-boss';
+      
+      let actualDifficulty: Difficulty = difficultyOverride || difficulty;
+      
+      // 根据区域和关卡决定题目类型
+      if (isForest) {
+        // 森林：基础加减法
         types = ['addition', 'subtraction'];
-      } else {
+        actualDifficulty = stageNumber <= 3 ? 'EASY' : 'MEDIUM';
+      } else if (isMountain) {
+        // 山脉：加减法进阶，引入乘法
+        types = stageNumber <= 2 ? ['addition', 'subtraction'] : ['addition', 'subtraction', 'multiplication'];
+        actualDifficulty = 'MEDIUM';
+      } else if (isVolcano) {
+        // 火山：乘法为主，引入除法
+        types = ['multiplication', 'division'];
+        actualDifficulty = stageNumber <= 3 ? 'MEDIUM' : 'HARD';
+      } else if (isDungeon) {
+        // 地下城：混合运算
         types = ['addition', 'subtraction', 'multiplication', 'division'];
+        actualDifficulty = 'HARD';
+      } else if (isDemon || isFinalBoss) {
+        // 魔界和最终Boss：高难度混合运算
+        types = ['multiplication', 'division'];
+        actualDifficulty = 'EXPERT';
+      } else {
+        // 默认
+        types = ['addition', 'subtraction'];
       }
       
       const randomType = types[Math.floor(Math.random() * types.length)];
       
-      // Abby的难度自动降低一级
-      let actualDifficulty = baseDifficulty;
-      if (user === 'abby') {
+      // Abby的难度自动降低一级（除非已经是EASY）
+      if (user === 'abby' && actualDifficulty !== 'EASY') {
         const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
-        const currentIndex = difficulties.indexOf(baseDifficulty);
+        const currentIndex = difficulties.indexOf(actualDifficulty);
         actualDifficulty = currentIndex > 0 ? difficulties[currentIndex - 1] : difficulties[0];
       }
       

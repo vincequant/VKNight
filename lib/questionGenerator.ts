@@ -10,22 +10,24 @@ export class QuestionGenerator {
     
     switch (difficulty) {
       case 'EASY':
-        // 为Abby设计的简单题目：1-20以内的加法
+        // 基础加法：1-20
         num1 = Math.floor(Math.random() * 10) + 1;
         num2 = Math.floor(Math.random() * 10) + 1;
         break;
       case 'MEDIUM':
-        // Josh的中等难度：10-99的加法
-        num1 = Math.floor(Math.random() * 50) + 10;
-        num2 = Math.floor(Math.random() * 50) + 10;
+        // 中等加法：20-100
+        num1 = Math.floor(Math.random() * 40) + 20;
+        num2 = Math.floor(Math.random() * 40) + 20;
         break;
       case 'HARD':
+        // 困难加法：50-200
         num1 = Math.floor(Math.random() * 100) + 50;
         num2 = Math.floor(Math.random() * 100) + 50;
         break;
       case 'EXPERT':
-        num1 = Math.floor(Math.random() * 500) + 100;
-        num2 = Math.floor(Math.random() * 500) + 100;
+        // 专家加法：100-999（三位数加法）
+        num1 = Math.floor(Math.random() * 900) + 100;
+        num2 = Math.floor(Math.random() * 900) + 100;
         break;
     }
 
@@ -48,22 +50,24 @@ export class QuestionGenerator {
     
     switch (difficulty) {
       case 'EASY':
-        // 为Abby设计的简单减法：结果为正数，20以内
+        // 基础减法：20以内，结果为正
         num1 = Math.floor(Math.random() * 15) + 5;
         num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
         break;
       case 'MEDIUM':
-        // Josh的中等难度
-        num1 = Math.floor(Math.random() * 50) + 20;
+        // 中等减法：100以内
+        num1 = Math.floor(Math.random() * 60) + 40;
         num2 = Math.floor(Math.random() * (num1 - 10)) + 1;
         break;
       case 'HARD':
-        num1 = Math.floor(Math.random() * 100) + 50;
-        num2 = Math.floor(Math.random() * num1) + 1;
+        // 困难减法：200以内，可能需要借位
+        num1 = Math.floor(Math.random() * 100) + 100;
+        num2 = Math.floor(Math.random() * 80) + 20;
         break;
       case 'EXPERT':
-        num1 = Math.floor(Math.random() * 500) + 200;
-        num2 = Math.floor(Math.random() * num1) + 1;
+        // 专家减法：1000以内，多次借位
+        num1 = Math.floor(Math.random() * 700) + 300;
+        num2 = Math.floor(Math.random() * 200) + 100;
         break;
     }
 
@@ -86,20 +90,24 @@ export class QuestionGenerator {
     
     switch (difficulty) {
       case 'EASY':
+        // 乘法表基础：1-5
         num1 = Math.floor(Math.random() * 5) + 1;
         num2 = Math.floor(Math.random() * 5) + 1;
         break;
       case 'MEDIUM':
-        num1 = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
+        // 乘法表进阶：2-10
+        num1 = Math.floor(Math.random() * 9) + 2;
+        num2 = Math.floor(Math.random() * 9) + 2;
         break;
       case 'HARD':
-        num1 = Math.floor(Math.random() * 15) + 5;
-        num2 = Math.floor(Math.random() * 15) + 5;
+        // 两位数乘一位数：10-20 × 2-9
+        num1 = Math.floor(Math.random() * 11) + 10;
+        num2 = Math.floor(Math.random() * 8) + 2;
         break;
       case 'EXPERT':
-        num1 = Math.floor(Math.random() * 25) + 10;
-        num2 = Math.floor(Math.random() * 25) + 10;
+        // 两位数乘两位数：10-50 × 10-20
+        num1 = Math.floor(Math.random() * 41) + 10;
+        num2 = Math.floor(Math.random() * 11) + 10;
         break;
     }
 
@@ -121,23 +129,27 @@ export class QuestionGenerator {
     
     switch (difficulty) {
       case 'EASY':
-        answer = Math.floor(Math.random() * 5) + 1;
+        // 除法表基础：结果1-10，除数1-5
+        answer = Math.floor(Math.random() * 10) + 1;
         num2 = Math.floor(Math.random() * 5) + 1;
         num1 = answer * num2;
         break;
       case 'MEDIUM':
-        answer = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
+        // 除法表进阶：结果1-20，除数2-10
+        answer = Math.floor(Math.random() * 20) + 1;
+        num2 = Math.floor(Math.random() * 9) + 2;
         num1 = answer * num2;
         break;
       case 'HARD':
-        answer = Math.floor(Math.random() * 15) + 5;
-        num2 = Math.floor(Math.random() * 10) + 2;
+        // 两位数除法：结果10-50，除数2-10
+        answer = Math.floor(Math.random() * 41) + 10;
+        num2 = Math.floor(Math.random() * 9) + 2;
         num1 = answer * num2;
         break;
       case 'EXPERT':
-        answer = Math.floor(Math.random() * 25) + 10;
-        num2 = Math.floor(Math.random() * 15) + 2;
+        // 三位数除法：结果10-99，除数2-20
+        answer = Math.floor(Math.random() * 90) + 10;
+        num2 = Math.floor(Math.random() * 19) + 2;
         num1 = answer * num2;
         break;
     }
