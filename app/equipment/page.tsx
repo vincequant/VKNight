@@ -31,7 +31,7 @@ export default function EquipmentPage() {
     if (user === 'vince') {
       const vinceData = localStorage.getItem('character_vince');
       if (vinceData) {
-        const vinceChar = migrateCharacterData(JSON.parse(vinceData));
+        const vinceChar = migrateCharacterData(deserializeCharacter(vinceData));
         setCharacter(calculateCharacterStats(vinceChar));
         
         // All equipment owned for vince
