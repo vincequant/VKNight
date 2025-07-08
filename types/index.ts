@@ -66,17 +66,50 @@ export type ItemCategory = 'PET' | 'AVATAR' | 'BACKGROUND' | 'POWERUP' | 'SCENE'
 
 export interface Question {
   id: string;
-  type: 'addition' | 'subtraction' | 'multiplication' | 'division';
+  type: QuestionType;
   difficulty: Difficulty;
   question: string;
-  answer: number;
-  options?: number[];
+  answer: number | string;
+  options: (number | string)[];
   visualElements?: VisualElement[];
+  hint?: string;
+  explanation?: string;
+  category?: QuestionCategory;
 }
 
+export type QuestionType = 
+  | 'addition' 
+  | 'subtraction' 
+  | 'multiplication' 
+  | 'division'
+  | 'pattern'          // 找规律
+  | 'comparison'       // 比大小
+  | 'sequence'         // 数列
+  | 'logic'           // 逻辑推理
+  | 'geometry'        // 几何
+  | 'word-problem'    // 应用题
+  | 'time'           // 时间
+  | 'money'          // 货币
+  | 'data'           // 数据统计
+  | 'fraction'       // 分数
+  | 'equation'       // 方程
+  | 'spatial'        // 空间想象
+
+export type QuestionCategory = 
+  | 'arithmetic'      // 基础运算
+  | 'pattern'        // 数字规律
+  | 'logic'          // 逻辑推理
+  | 'geometry'       // 几何空间
+  | 'application'    // 应用题
+  | 'statistics'     // 数据统计
+  | 'time-money'     // 时间货币
+  | 'function'       // 初级函数
+
 export interface VisualElement {
-  type: 'number-block' | 'group' | 'animation';
-  value: number;
+  type: 'number-block' | 'group' | 'animation' | 'emoji' | 'shape' | 'graph' | 'clock' | 'money' | 'fraction-pie';
+  value?: number;
+  content?: string;
+  count?: number;
   position?: { x: number; y: number };
   color?: string;
 }

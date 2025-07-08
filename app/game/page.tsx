@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QuestionGenerator } from '@/lib/questionGenerator';
+import { ComprehensiveQuestionGenerator } from '@/lib/comprehensiveQuestionGenerator';
 import { soundManager } from '@/lib/sounds';
 import { Question, Difficulty } from '@/types';
 import { Character, Stage, Enemy as GameEnemy, calculateCharacterStats, BattleState, GameProgress } from '@/types/game';
@@ -185,83 +186,21 @@ function GameContent() {
 
   const generateNewQuestionForUser = (user: string, difficultyOverride?: Difficulty) => {
     try {
-      let types: ('addition' | 'subtraction' | 'multiplication' | 'division')[];
+      const baseDifficulty = difficultyOverride || difficulty;
+      const characterType = user as 'josh' | 'abby';
       
-      // 根据关卡进度决定题目类型和难度
-      const stageNumber = parseInt(stageId.split('-')[1] || '1');
-      const isForest = stageId.includes('forest');
-      const isMountain = stageId.includes('mountain');
-      const isVolcano = stageId.includes('volcano');
-      const isDungeon = stageId.includes('dungeon');
-      const isDemon = stageId.includes('demon');
-      const isFinalBoss = stageId === 'final-boss';
-      
-      let actualDifficulty: Difficulty = difficultyOverride || difficulty;
-      
-      // 根据区域和关卡决定题目类型
-      if (isForest) {
-        // 森林：基础加减法
-        types = ['addition', 'subtraction'];
-        actualDifficulty = stageNumber <= 3 ? 'EASY' : 'MEDIUM';
-      } else if (isMountain) {
-        // 山脉：加减法进阶，引入乘法
-        types = stageNumber <= 2 ? ['addition', 'subtraction'] : ['addition', 'subtraction', 'multiplication'];
-        actualDifficulty = 'MEDIUM';
-      } else if (isVolcano) {
-        // 火山：乘法为主，引入除法
-        types = ['multiplication', 'division'];
-        actualDifficulty = stageNumber <= 3 ? 'MEDIUM' : 'HARD';
-      } else if (isDungeon) {
-        // 地下城：混合运算
-        types = ['addition', 'subtraction', 'multiplication', 'division'];
-        actualDifficulty = 'HARD';
-      } else if (isDemon || isFinalBoss) {
-        // 魔界和最终Boss：高难度混合运算
-        types = ['multiplication', 'division'];
-        actualDifficulty = 'EXPERT';
-      } else {
-        // 默认
-        types = ['addition', 'subtraction'];
-      }
-      
-      const randomType = types[Math.floor(Math.random() * types.length)];
-      
-      // Abby的难度自动降低一级（除非已经是EASY）
-      if (user === 'abby' && actualDifficulty !== 'EASY') {
-        const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'EXPERT'];
-        const currentIndex = difficulties.indexOf(actualDifficulty);
-        actualDifficulty = currentIndex > 0 ? difficulties[currentIndex - 1] : difficulties[0];
-      }
-      
-      // 直接调用对应的方法，避免可能的方法名问题
-      let question: Question;
-      switch (randomType) {
-        case 'addition':
-          question = QuestionGenerator.generateAddition(actualDifficulty);
-          break;
-        case 'subtraction':
-          question = QuestionGenerator.generateSubtraction(actualDifficulty);
-          break;
-        case 'multiplication':
-          question = QuestionGenerator.generateMultiplication(actualDifficulty);
-          break;
-        case 'division':
-          question = QuestionGenerator.generateDivision(actualDifficulty);
-          break;
-      }
+      // 使用新的综合题目生成器
+      const question = ComprehensiveQuestionGenerator.generateQuestion(
+        stageId,
+        characterType,
+        baseDifficulty
+      );
       
       setCurrentQuestion(question);
     } catch (error) {
       console.error('Error generating question:', error);
-      // 生成一个简单的备用题目
-      const fallbackQuestion: Question = {
-        id: Math.random().toString(36).substring(2, 15),
-        type: 'addition',
-        difficulty: 'EASY',
-        question: '5 + 3 = ?',
-        answer: 8,
-        options: [6, 7, 8, 9]
-      };
+      // 如果出错，生成一个简单的加法题作为后备
+      const fallbackQuestion = QuestionGenerator.generateAddition('EASY');
       setCurrentQuestion(fallbackQuestion);
     }
   };
@@ -271,7 +210,7 @@ function GameContent() {
     generateNewQuestionForUser(currentUser);
   };
 
-  const handleAnswer = (answer: number) => {
+  const handleAnswer = (answer: number | string) => {
     if (!currentQuestion || battleState.mode !== 'question' || !character || !currentEnemy) return;
 
     const isCorrect = answer === currentQuestion.answer;
