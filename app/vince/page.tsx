@@ -91,7 +91,6 @@ export default function VincePage() {
       // Save to localStorage
       localStorage.setItem('currentUser', 'vince');
       localStorage.setItem('character_vince', JSON.stringify(godCharacter));
-      localStorage.setItem('character_josh', JSON.stringify(godCharacter));
       
       // Save owned equipment
       const allEquipmentIds = [
@@ -99,7 +98,6 @@ export default function VincePage() {
         'leather-armor', 'iron-armor', 'steel-armor', 'mythril-armor', 'legendary-armor',
         'wooden-shield', 'iron-shield', 'steel-shield', 'mythril-shield', 'legendary-shield',
       ];
-      localStorage.setItem('ownedEquipment_josh', JSON.stringify(allEquipmentIds));
       localStorage.setItem('ownedEquipment_vince', JSON.stringify(allEquipmentIds));
       
       // Set difficulty to EASY

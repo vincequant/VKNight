@@ -58,6 +58,30 @@ export default function Home() {
       localStorage.setItem('currentUser', selectedUser);
       localStorage.setItem('userDifficulty', character?.difficulty || 'EASY');
       
+      // Clear any existing vince god mode data if selecting a normal character
+      if (selectedUser !== 'vince') {
+        // Remove vince data to prevent contamination
+        const vinceData = localStorage.getItem('character_vince');
+        if (vinceData) {
+          // Check if current character has been contaminated with vince data
+          const currentCharData = localStorage.getItem(`character_${selectedUser}`);
+          if (currentCharData) {
+            try {
+              const charData = JSON.parse(currentCharData);
+              // If character has unrealistic stats, remove the data
+              if (charData.level > 50 || charData.hp > 1000) {
+                localStorage.removeItem(`character_${selectedUser}`);
+                localStorage.removeItem(`ownedEquipment_${selectedUser}`);
+              }
+            } catch (e) {
+              // Invalid data, remove it
+              localStorage.removeItem(`character_${selectedUser}`);
+              localStorage.removeItem(`ownedEquipment_${selectedUser}`);
+            }
+          }
+        }
+      }
+      
       setTimeout(() => {
         window.location.href = '/hub';
       }, 2500);
