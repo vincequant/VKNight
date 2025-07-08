@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Disable React DevTools in production
+  reactStrictMode: true,
+  // Remove source maps in production
+  productionBrowserSourceMaps: false,
+  // Disable powered by header
+  poweredByHeader: false,
+  // Compress output
+  compress: true,
 };
 
 export default nextConfig;

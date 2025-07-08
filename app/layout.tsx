@@ -28,6 +28,25 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Remove any debug overlays
+              if (typeof window !== 'undefined') {
+                // Remove React DevTools globals
+                if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+                  window.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = function() {};
+                }
+                // Clear any debug console methods in production
+                if (process.env.NODE_ENV === 'production') {
+                  console.log = function() {};
+                  console.debug = function() {};
+                  console.info = function() {};
+                }
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

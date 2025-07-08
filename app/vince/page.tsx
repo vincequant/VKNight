@@ -105,8 +105,7 @@ export default function VincePage() {
       // Set difficulty to EASY
       localStorage.setItem('userDifficulty', 'EASY');
       
-      // Log success
-      console.log('God mode activated!');
+      // Remove console log in production
       
       // Add a small delay before redirecting
       setTimeout(() => {
@@ -114,7 +113,6 @@ export default function VincePage() {
       }, 1000);
       
     } catch (error) {
-      console.error('Error activating god mode:', error);
       // If there's an error, still try to redirect
       setTimeout(() => {
         router.push('/');
