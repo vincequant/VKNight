@@ -135,7 +135,7 @@ export default function HubPage() {
   };
 
   const handleStageSelect = async (stage: Stage) => {
-    if (stage.locked) {
+    if (stage.locked || stage.comingSoon) {
       soundManager.play('incorrect');
       return;
     }
@@ -400,21 +400,29 @@ export default function HubPage() {
           <>
             {/* Area Tabs */}
             <div className="flex justify-center gap-2 mb-8">
-              {areas.map((area) => (
-                <motion.button
-                  key={area}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedArea(area)}
-                  className={`px-6 py-3 rounded-lg font-bold transition-all ${
-                    selectedArea === area
-                      ? `bg-gradient-to-r ${areaColors[area as keyof typeof areaColors]} text-white shadow-lg`
-                      : 'bg-gray-800 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {area}
-                </motion.button>
-              ))}
+              {areas.map((area) => {
+                const areaStages = availableStages.filter(s => s.area === area);
+                const isComingSoon = areaStages.length > 0 && areaStages.every(s => s.comingSoon);
+                
+                return (
+                  <motion.button
+                    key={area}
+                    whileHover={{ scale: isComingSoon ? 1 : 1.05 }}
+                    whileTap={{ scale: isComingSoon ? 1 : 0.95 }}
+                    onClick={() => !isComingSoon && setSelectedArea(area)}
+                    className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                      isComingSoon
+                        ? 'bg-purple-900/50 text-purple-400 cursor-not-allowed border border-purple-700'
+                        : selectedArea === area
+                        ? `bg-gradient-to-r ${areaColors[area as keyof typeof areaColors]} text-white shadow-lg`
+                        : 'bg-gray-800 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {area}
+                    {isComingSoon && ' 🚧'}
+                  </motion.button>
+                );
+              })}
             </div>
 
             {/* Stage Grid */}
@@ -427,20 +435,27 @@ export default function HubPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: stage.locked ? 1 : 1.02 }}
+                whileHover={{ scale: stage.locked || stage.comingSoon ? 1 : 1.02 }}
                 onClick={() => handleStageSelect(stage)}
-                className={`relative cursor-pointer ${
-                  stage.locked ? 'opacity-50' : ''
+                className={`relative ${
+                  stage.comingSoon ? 'cursor-not-allowed' : stage.locked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                 }`}
               >
                 <div className={`bg-gray-800/90 backdrop-blur-sm rounded-lg border-2 ${
-                  stage.locked ? 'border-gray-600' : 'border-yellow-600/50 hover:border-yellow-600'
+                  stage.comingSoon 
+                    ? 'border-purple-600 bg-purple-900/20' 
+                    : stage.locked 
+                    ? 'border-gray-600' 
+                    : 'border-yellow-600/50 hover:border-yellow-600'
                 } overflow-hidden transition-all`}>
                   {/* Stage Header */}
                   <div className={`p-4 bg-gradient-to-r ${areaColors[selectedArea as keyof typeof areaColors]}`}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-xl font-bold text-white mb-1">{stage.name}</h3>
+                        <h3 className="text-xl font-bold text-white mb-1">
+                          {stage.name}
+                          {stage.comingSoon && ' 🚧'}
+                        </h3>
                         <p className="text-sm text-gray-200">难度: {'⭐'.repeat(stage.difficulty)}</p>
                       </div>
                       <div className="text-4xl">{stage.icon}</div>
@@ -478,7 +493,9 @@ export default function HubPage() {
                         <ETHDisplay amount={stage.ethReward} size="sm" />
                         <span className="text-blue-400">✨ {stage.expReward} EXP</span>
                       </div>
-                      {stage.locked && (
+                      {stage.comingSoon ? (
+                        <span className="text-purple-400 text-sm">🚧 即将开放</span>
+                      ) : stage.locked && (
                         <span className="text-red-400 text-sm">🔒 未解锁</span>
                       )}
                     </div>
@@ -519,6 +536,16 @@ export default function HubPage() {
                 {character.stagesCleared.includes(stage.id) && (
                   <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
                     ✓
+                  </div>
+                )}
+                
+                {/* Coming Soon Overlay */}
+                {stage.comingSoon && (
+                  <div className="absolute inset-0 bg-purple-900/50 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <span className="text-5xl mb-2 block">🚧</span>
+                      <p className="text-purple-300 font-bold text-lg">即将开放</p>
+                    </div>
                   </div>
                 )}
               </motion.div>
