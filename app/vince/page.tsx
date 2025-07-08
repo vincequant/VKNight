@@ -11,11 +11,11 @@ export default function VincePage() {
       // Create a super character for testing
       const godCharacter = {
         id: 'vince',
-        type: 'josh',
+        type: 'vince' as any,  // Special god mode type
         level: 99,
         experience: 0,
         expToNextLevel: 999999,
-        eth: '100000000000000000000000n', // 100,000 ETH as BigInt string
+        eth: '99999000000000000000000n', // 99,999 ETH as BigInt string
         hp: 9999,
         maxHp: 9999,
         mp: 9999,
@@ -132,7 +132,7 @@ export default function VincePage() {
         </div>
         <div className="mt-8 text-gray-400">
           <p>等级: 99</p>
-          <p>ETH: 100,000</p>
+          <p>ETH: 99,999</p>
           <p>所有关卡已解锁</p>
           <p>最强装备已装备</p>
         </div>

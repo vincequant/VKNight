@@ -20,18 +20,20 @@ export default function HubPage() {
   const [selectedArea, setSelectedArea] = useState<string>('森林');
   const [showCharacterPanel, setShowCharacterPanel] = useState(false);
   const [showWorldMap, setShowWorldMap] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string>('');
 
   useEffect(() => {
     // Load character data
     const loadCharacterData = async () => {
       // Check if there's saved character data
       const user = localStorage.getItem('currentUser') || 'josh';
+      setCurrentUser(user);
       
       // Special handling for vince (god mode)
       if (user === 'vince') {
         const vinceData = localStorage.getItem('character_vince');
         if (vinceData) {
-          const vinceChar = JSON.parse(vinceData);
+          const vinceChar = deserializeCharacter(vinceData);
           setCharacter(calculateCharacterStats(vinceChar));
           const unlockedStages = getUnlockedStages(99, vinceChar.stagesCleared);
           setAvailableStages(unlockedStages);
@@ -231,7 +233,12 @@ export default function HubPage() {
               >
                 <CharacterAvatar character={character.type} size="md" />
                 <div>
-                  <div className="text-white font-bold">{character.type === 'josh' ? 'Josh' : 'Abby'}</div>
+                  <div className="text-white font-bold">
+                    {currentUser === 'vince' ? 'Vince' : 
+                     character.type === 'josh' ? 'Josh' : 
+                     character.type === 'abby' ? 'Abby' : 
+                     character.type === 'vince' ? 'Vince' : character.type}
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-yellow-400 text-sm">Lv. {character.level}</span>
                     <div className="w-24 bg-gray-700 rounded-full h-2 overflow-hidden relative">

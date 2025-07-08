@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 interface CharacterAvatarProps {
-  character: 'josh' | 'abby';
+  character: 'josh' | 'abby' | 'vince' | string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
@@ -23,11 +23,13 @@ export default function CharacterAvatar({ character, size = 'md', className = ''
   // Use character images
   const imagePath = character === 'josh' 
     ? '/images/characters/josh/josh_knight.png'
-    : '/images/characters/abby/abby_archer.png';
+    : character === 'abby'
+    ? '/images/characters/abby/abby_archer.png'
+    : null;  // vince uses emoji only
   
   // Fallback to emoji if no image or error
-  if (!imagePath || imageError) {
-    const emoji = character === 'josh' ? '🗡️' : '🏹';
+  if (!imagePath || imageError || character === 'vince') {
+    const emoji = character === 'josh' ? '🗡️' : character === 'abby' ? '🏹' : '⚡';
     const fontSize = size === 'sm' ? 'text-2xl' : size === 'md' ? 'text-4xl' : size === 'lg' ? 'text-6xl' : 'text-8xl';
     return <span className={`${fontSize} ${className}`}>{emoji}</span>;
   }

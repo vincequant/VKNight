@@ -21,9 +21,11 @@ export default function EquipmentPage() {
   const [ownedEquipment, setOwnedEquipment] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'weapon' | 'armor' | 'shield'>('all');
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [currentUser, setCurrentUser] = useState<string>('');
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser') || 'abby';
+    setCurrentUser(user);
     
     // Special handling for vince (god mode)
     if (user === 'vince') {
@@ -175,7 +177,8 @@ export default function EquipmentPage() {
               className="bg-gray-800/80 rounded-lg p-6 border border-gray-700"
             >
               <h2 className="text-2xl font-bold text-white mb-4">
-                {character.type === 'josh' ? 'Josh 骑士' : 'Abby 魔法师'}
+                {currentUser === 'vince' ? 'Vince 无敌模式' : 
+                 character.type === 'josh' ? 'Josh 骑士' : 'Abby 魔法师'}
               </h2>
               
               <div className="space-y-3">
