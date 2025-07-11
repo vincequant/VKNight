@@ -32,6 +32,14 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
   useEffect(() => {
     if (isOpen) {
       loadSaves();
+      // 设置默认存档名称为当前日期时间
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      setSaveName(`${year}-${month}-${day} ${hours}:${minutes}`);
     }
   }, [isOpen, character.type]);
 
