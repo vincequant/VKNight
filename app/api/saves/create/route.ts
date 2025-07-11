@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
+import { ensureCharacterBackupTable } from '@/lib/ensureDatabase';
 
 export async function POST(request: NextRequest) {
   try {
+    // 确保表存在
+    await ensureCharacterBackupTable();
+    
     const { name, character } = await request.json();
     
     if (!name || !character) {
