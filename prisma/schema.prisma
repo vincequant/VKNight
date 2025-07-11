@@ -46,9 +46,6 @@ model Character {
   
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  
-  // 添加备份关系
-  backups       CharacterBackup[]
 }
 
 model Equipment {
@@ -98,8 +95,6 @@ model CharacterBackup {
   backupName    String
   backupData    String        // JSON string of full character data
   createdAt     DateTime      @default(now())
-  
-  character     Character?    @relation(fields: [characterType], references: [type])
   
   @@index([characterType])
 }

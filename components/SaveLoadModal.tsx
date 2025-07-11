@@ -46,12 +46,22 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
   const loadSaves = async () => {
     try {
       const res = await fetch(`/api/saves/list?type=${character.type}`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
       if (data.success) {
+        console.log('加载的存档数据:', data.saves);
         setSaves(data.saves);
+      } else {
+        console.error('Load saves failed:', data);
+        setMessage(data.error || '获取存档列表失败');
+        setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       console.error('Failed to load saves:', error);
+      setMessage('获取存档列表失败');
+      setTimeout(() => setMessage(''), 3000);
     }
   };
 
@@ -70,6 +80,11 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
         body: JSON.stringify({
           name: saveName,
           character: character
+        }, (key, value) => {
+          if (typeof value === 'bigint') {
+            return value.toString();
+          }
+          return value;
         })
       });
 
@@ -84,11 +99,12 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
         }, 1500);
       } else {
         console.error('Save failed:', data);
-        setMessage(data.error || '存档失败');
+        const errorMsg = data?.details ? `${data.error}: ${data.details}` : (data?.error || '存档失败');
+        setMessage(errorMsg);
       }
     } catch (error) {
       console.error('Save error:', error);
-      setMessage('存档失败');
+      setMessage('存档失败：网络错误');
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(''), 3000);
@@ -96,6 +112,7 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
   };
 
   const handleLoad = async (saveId: string) => {
+    console.log('尝试加载存档，ID:', saveId, '类型:', typeof saveId);
     setLoading(true);
     try {
       const res = await fetch(`/api/saves/load?id=${saveId}`);
@@ -252,7 +269,9 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
               {saves.length === 0 ? (
                 <p className="text-gray-400 text-center py-8">暂无存档</p>
               ) : (
-                saves.map((save) => (
+                saves.map((save) => {
+                  console.log('存档对象:', save);
+                  return (
                   <div key={save.id} className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                     <div>
                       <h4 className="font-bold text-white">{save.name}</h4>
@@ -265,14 +284,23 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleLoad(save.id)}
+                        onClick={() => {
+                          console.log('点击读取按钮，save对象:', save);
+                          console.log('save.id:', save.id, '类型:', typeof save.id);
+                          const saveId = typeof save.id === 'string' ? save.id : String(save.id);
+                          console.log('转换后的saveId:', saveId, '类型:', typeof saveId);
+                          handleLoad(saveId);
+                        }}
                         disabled={loading}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded font-bold text-sm"
                       >
                         读取
                       </button>
                       <button
-                        onClick={() => handleDelete(save.id)}
+                        onClick={() => {
+                          const saveId = typeof save.id === 'string' ? save.id : String(save.id);
+                          handleDelete(saveId);
+                        }}
                         disabled={loading}
                         className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded font-bold text-sm"
                       >
@@ -280,7 +308,8 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
                       </button>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}

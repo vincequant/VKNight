@@ -188,19 +188,12 @@ export default function HubPage() {
     window.location.href = '/store';
   };
 
-  const handleLoad = async (saveId: string) => {
+  const handleLoad = async (characterData: Character) => {
     try {
-      const response = await fetch(`/api/saves/load?id=${saveId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        // 保存加载的角色数据
-        await saveCharacter(data.character);
-        // 刷新页面以显示新数据
-        window.location.reload();
-      } else {
-        alert('加载存档失败: ' + data.error);
-      }
+      // 直接保存传入的角色数据
+      await saveCharacter(characterData);
+      // 刷新页面以显示新数据
+      window.location.reload();
     } catch (error) {
       console.error('Load error:', error);
       alert('加载存档时出错');

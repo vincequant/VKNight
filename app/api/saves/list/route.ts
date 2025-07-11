@@ -32,22 +32,34 @@ export async function GET(request: NextRequest) {
         console.error('Error parsing save data:', e);
       }
       
+      console.log('存档ID:', save.id, '类型:', typeof save.id);
       return {
         id: save.id,
         name: save.backupName,
         character: characterData,
-        createdAt: save.createdAt,
+        createdAt: save.createdAt.toISOString(),
       };
     });
     
     return NextResponse.json({
       success: true,
       saves: formattedSaves,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   } catch (error) {
     console.error('List saves error:', error);
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    
     return NextResponse.json(
-      { success: false, error: '获取存档列表失败' },
+      { 
+        success: false, 
+        error: '获取存档列表失败',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
