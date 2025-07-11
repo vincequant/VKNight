@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { ensureCharacterBackupTable } from '@/lib/ensureDatabase';
+import { ensureCharacterBackupTable } from '@/lib/ensureDatabaseCompat';
 
 export async function DELETE(request: NextRequest) {
   try {
