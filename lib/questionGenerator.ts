@@ -28,9 +28,19 @@ export class QuestionGenerator {
       num1 = double;
       num2 = single;
     } else if (config?.minNum !== undefined && config?.maxNum !== undefined) {
-      // 使用配置的范围
-      num1 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
-      num2 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
+      // 特殊处理forest-1的Josh版本：结果在20-100之间
+      if (config.minNum === 20 && config.maxNum === 100) {
+        // 生成结果在20-100之间的加法题
+        const targetSum = Math.floor(Math.random() * 81) + 20; // 20-100的结果
+        // 确保num1至少为10，这样才是双位数加法
+        num1 = Math.floor(Math.random() * (targetSum - 20)) + 10;
+        num1 = Math.min(num1, targetSum - 10); // 确保num2也至少是10
+        num2 = targetSum - num1;
+      } else {
+        // 原有逻辑：使用配置的范围
+        num1 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
+        num2 = Math.floor(Math.random() * (config.maxNum - config.minNum + 1)) + config.minNum;
+      }
     } else {
       switch (difficulty) {
         case 'EASY':

@@ -83,9 +83,11 @@ export default function SaveLoadModal({ isOpen, onClose, character, onLoad }: Sa
           onClose();
         }, 1500);
       } else {
+        console.error('Save failed:', data);
         setMessage(data.error || '存档失败');
       }
     } catch (error) {
+      console.error('Save error:', error);
       setMessage('存档失败');
     } finally {
       setLoading(false);
