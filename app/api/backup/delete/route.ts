@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { getOrCreateUser } from '@/lib/cloudStorage';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -14,18 +13,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    const user = await getOrCreateUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 401 }
-      );
-    }
-    
     const result = await prisma.characterBackup.deleteMany({
       where: {
         id: backupId,
-        userId: user.id,
       },
     });
     

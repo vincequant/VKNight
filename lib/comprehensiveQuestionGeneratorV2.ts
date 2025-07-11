@@ -43,13 +43,13 @@ interface StageConfig {
 
 // 重新设计的关卡配置，确保难度递进
 const STAGE_CONFIGS: Record<string, StageConfig> = {
-  // 第一关 - Josh版本：双位数(10-20)加减法
+  // 第一关 - Josh版本：双位数加减法
   'forest-1': {
     questionTypes: [
-      // 双位数(10-20)+双位数(10-20)
-      { type: 'addition', weight: 50, config: { minNum: 10, maxNum: 20 } },
-      // 双位数(10-20)-个位数
-      { type: 'subtraction', weight: 50, config: { doubleMinusSingle: true } }
+      // 双位数(20-100)+双位数(20-100)
+      { type: 'addition', weight: 50, config: { minNum: 20, maxNum: 100 } },
+      // 双位数减法(20-50)
+      { type: 'subtraction', weight: 50, config: { minNum: 20, maxNum: 50 } }
     ],
     difficultyOverride: 'EASY'
   },

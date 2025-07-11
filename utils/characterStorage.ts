@@ -39,11 +39,8 @@ export async function saveCharacter(character: Character, createBackupFlag: bool
   localStorage.setItem(key, serializeCharacter(character));
   
   // Also save owned equipment if present
-  if (character.inventory) {
-    const equipmentKey = `ownedEquipment_${character.id || character.type}`;
-    const ownedIds = character.inventory.map(item => item.id);
-    localStorage.setItem(equipmentKey, JSON.stringify(ownedIds));
-  }
+  // Note: owned equipment is managed separately in the store/equipment pages
+  // This function focuses on saving the character data including equipped items
   
   // Create backup on important events
   if (createBackupFlag) {
@@ -91,7 +88,7 @@ export function loadCharacter(userId: string): Character | null {
 // Load character with cloud fallback
 export async function loadCharacterWithCloud(characterType: string): Promise<Character | null> {
   try {
-    // Try to load from cloud first
+    // 总是优先从云端加载
     const response = await fetch(`/api/character/load?type=${characterType}`);
     
     if (response.ok) {
@@ -110,7 +107,7 @@ export async function loadCharacterWithCloud(characterType: string): Promise<Cha
           character.shield.price = BigInt(character.shield.price);
         }
         
-        // Save to localStorage for offline access
+        // 保存到localStorage作为离线缓存
         localStorage.setItem(`character_${character.type}`, serializeCharacter(character));
         
         return character;
@@ -120,6 +117,6 @@ export async function loadCharacterWithCloud(characterType: string): Promise<Cha
     console.error('Error loading from cloud:', error);
   }
   
-  // Fall back to localStorage
+  // 如果云端加载失败，尝试从本地缓存加载
   return loadCharacter(characterType);
 }

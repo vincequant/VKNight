@@ -7,22 +7,9 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model User {
-  id            String        @id @default(cuid())
-  deviceId      String        @unique
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  characters    Character[]
-  purchases     Purchase[]
-  achievements  Achievement[]
-  backups       CharacterBackup[]
-}
-
 model Character {
   id            String        @id @default(cuid())
-  userId        String
-  type          String        // 'josh' or 'abby'
+  type          String        @unique // 'josh' or 'abby' - 现在是唯一的
   level         Int           @default(1)
   experience    Int           @default(0)
   expToNextLevel Int          @default(100)
@@ -53,7 +40,6 @@ model Character {
   ownedEquipment String        @default("[]") // JSON array of owned equipment IDs
   stagesPaidFor  String        @default("[]") // JSON array of stage IDs that have been paid for
   
-  user          User          @relation(fields: [userId], references: [id])
   weapon        Equipment?    @relation("CharacterWeapon", fields: [weaponId], references: [id])
   armor         Equipment?    @relation("CharacterArmor", fields: [armorId], references: [id])
   shield        Equipment?    @relation("CharacterShield", fields: [shieldId], references: [id])
@@ -61,7 +47,8 @@ model Character {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
-  @@unique([userId, type])
+  // 添加备份关系
+  backups       CharacterBackup[]
 }
 
 model Equipment {
@@ -105,41 +92,14 @@ model Stage {
   createdAt     DateTime      @default(now())
 }
 
-model Purchase {
-  id            String        @id @default(cuid())
-  userId        String
-  itemId        String
-  itemName      String
-  itemType      String
-  price         String        // Store bigint as string
-  
-  user          User          @relation(fields: [userId], references: [id])
-  createdAt     DateTime      @default(now())
-}
-
-model Achievement {
-  id            String        @id @default(cuid())
-  userId        String
-  type          String        // e.g., "first_victory", "level_10", "perfect_streak"
-  name          String
-  description   String
-  unlocked      Boolean       @default(false)
-  
-  user          User          @relation(fields: [userId], references: [id])
-  unlockedAt    DateTime?
-  
-  @@unique([userId, type])
-}
-
 model CharacterBackup {
   id            String        @id @default(cuid())
-  userId        String
   characterType String        // 'josh' or 'abby'
   backupName    String
   backupData    String        // JSON string of full character data
   createdAt     DateTime      @default(now())
   
-  user          User          @relation(fields: [userId], references: [id])
+  character     Character?    @relation(fields: [characterType], references: [type])
   
-  @@index([userId, characterType])
+  @@index([characterType])
 }

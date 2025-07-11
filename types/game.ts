@@ -120,6 +120,10 @@ export const calculateCharacterStats = (character: Character): Character => {
     mp: character.mp !== undefined ? character.mp : maxMp,
     attack: character.baseAttack + weaponBonus.attackBonus + armorBonus.attackBonus + shieldBonus.attackBonus + Math.floor(levelBonus / 2),
     defense: character.baseDefense + weaponBonus.defenseBonus + armorBonus.defenseBonus + shieldBonus.defenseBonus + Math.floor(levelBonus / 3),
+    // Explicitly preserve equipment references
+    weapon: character.weapon,
+    armor: character.armor,
+    shield: character.shield
   };
 };
 

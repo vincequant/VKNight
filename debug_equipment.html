@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Equipment Issue</title>
+</head>
+<body>
+    <h1>Debug Equipment Issue</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Check localStorage for Josh's data
+        const joshData = localStorage.getItem('character_josh');
+        const output = document.getElementById('output');
+        
+        if (joshData) {
+            try {
+                // Parse the data
+                const parsed = JSON.parse(joshData, (key, value) => {
+                    if (typeof value === 'string' && value.endsWith('n')) {
+                        const numStr = value.slice(0, -1);
+                        if (/^\d+$/.test(numStr)) {
+                            return BigInt(numStr);
+                        }
+                    }
+                    return value;
+                });
+                
+                output.innerHTML = `
+                    <h2>Josh's Character Data:</h2>
+                    <pre>${JSON.stringify(parsed, (key, value) => 
+                        typeof value === 'bigint' ? value.toString() : value, 2)}</pre>
+                    
+                    <h3>Equipment Status:</h3>
+                    <p>Weapon: ${parsed.weapon ? parsed.weapon.name : 'None'}</p>
+                    <p>Armor: ${parsed.armor ? parsed.armor.name : 'None'}</p>
+                    <p>Shield: ${parsed.shield ? parsed.shield.name : 'None'}</p>
+                    
+                    <h3>Owned Equipment:</h3>
+                    <p>${localStorage.getItem('ownedEquipment_josh') || 'None'}</p>
+                `;
+            } catch (e) {
+                output.innerHTML = `<p>Error parsing data: ${e.message}</p>`;
+            }
+        } else {
+            output.innerHTML = '<p>No Josh data found in localStorage</p>';
+        }
+    </script>
+</body>
+</html>

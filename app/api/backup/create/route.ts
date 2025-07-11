@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { getOrCreateUser } from '@/lib/cloudStorage';
 
 export async function POST(request: NextRequest) {
   try {
     const { characterType, backupName, characterData } = await request.json();
     
-    const user = await getOrCreateUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 401 }
-      );
-    }
-    
     // Create backup
     const backup = await prisma.characterBackup.create({
       data: {
-        userId: user.id,
         characterType,
         backupName: backupName || `备份 - ${new Date().toLocaleString('zh-CN')}`,
         backupData: JSON.stringify(characterData),
@@ -27,7 +17,6 @@ export async function POST(request: NextRequest) {
     // Keep only the most recent 10 backups per character
     const allBackups = await prisma.characterBackup.findMany({
       where: {
-        userId: user.id,
         characterType,
       },
       orderBy: {

@@ -6,6 +6,7 @@ import { Character } from '@/types/game';
 import { saveCharacter, deserializeCharacter, serializeCharacter } from '@/utils/characterStorage';
 import { formatWeiCompact } from '@/utils/ethereum';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -44,7 +45,10 @@ export default function AdminPage() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      // Load from cloud
+      let loadedJosh = null;
+      let loadedAbby = null;
+      
+      // Load from cloud first
       const [joshRes, abbyRes] = await Promise.all([
         fetch('/api/character/load?type=josh'),
         fetch('/api/character/load?type=abby')
@@ -55,6 +59,7 @@ export default function AdminPage() {
         if (joshJson.success && joshJson.character) {
           const josh = joshJson.character;
           josh.eth = BigInt(josh.eth);
+          loadedJosh = josh;
           setJoshData(josh);
         }
       }
@@ -64,19 +69,36 @@ export default function AdminPage() {
         if (abbyJson.success && abbyJson.character) {
           const abby = abbyJson.character;
           abby.eth = BigInt(abby.eth);
+          loadedAbby = abby;
           setAbbyData(abby);
         }
       }
 
-      // Also check local storage
-      const localJosh = localStorage.getItem('character_josh');
-      const localAbby = localStorage.getItem('character_abby');
-
-      if (localJosh && !joshData) {
-        setJoshData(deserializeCharacter(localJosh));
+      // Only check local storage if cloud data not found
+      if (!loadedJosh) {
+        const localJosh = localStorage.getItem('character_josh');
+        if (localJosh) {
+          try {
+            const josh = deserializeCharacter(localJosh);
+            setJoshData(josh);
+            console.log('Loaded Josh from localStorage');
+          } catch (e) {
+            console.error('Error loading Josh from localStorage:', e);
+          }
+        }
       }
-      if (localAbby && !abbyData) {
-        setAbbyData(deserializeCharacter(localAbby));
+      
+      if (!loadedAbby) {
+        const localAbby = localStorage.getItem('character_abby');
+        if (localAbby) {
+          try {
+            const abby = deserializeCharacter(localAbby);
+            setAbbyData(abby);
+            console.log('Loaded Abby from localStorage');
+          } catch (e) {
+            console.error('Error loading Abby from localStorage:', e);
+          }
+        }
       }
 
       setMessage('数据加载成功');
@@ -311,6 +333,32 @@ export default function AdminPage() {
             >
               云端备份 ({cloudBackups.length})
             </button>
+          </div>
+        </div>
+
+        {/* Quick Access Tools */}
+        <div className="bg-gray-800 rounded-lg p-4 mb-6">
+          <h2 className="text-xl font-bold text-white mb-4">快速访问工具</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link href="/admin/ultimate-fix" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold text-center">
+              终极修复工具
+            </Link>
+            
+            <Link href="/admin/add-eth" className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-bold text-center">
+              添加ETH测试
+            </Link>
+            
+            <Link href="/admin/check-data" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold text-center">
+              检查数据
+            </Link>
+            
+            <Link href="/admin/seed" className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold text-center">
+              种子装备
+            </Link>
+            
+            <Link href="/store" className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-lg font-bold text-center">
+              前往商店
+            </Link>
           </div>
         </div>
 

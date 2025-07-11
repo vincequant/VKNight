@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { getOrCreateUser } from '@/lib/cloudStorage';
 
 export async function POST(request: NextRequest) {
   try {
     const { backupId } = await request.json();
     
-    const user = await getOrCreateUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 401 }
-      );
-    }
-    
     const backup = await prisma.characterBackup.findFirst({
       where: {
         id: backupId,
-        userId: user.id,
       },
     });
     

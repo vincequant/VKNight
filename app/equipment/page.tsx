@@ -105,7 +105,7 @@ export default function EquipmentPage() {
 
     const calculatedChar = calculateCharacterStats(updatedChar);
     setCharacter(calculatedChar);
-    saveCharacter(updatedChar);
+    saveCharacter(calculatedChar);
   };
 
   const unequipItem = (type: 'weapon' | 'armor' | 'shield') => {
@@ -129,7 +129,7 @@ export default function EquipmentPage() {
 
     const calculatedChar = calculateCharacterStats(updatedChar);
     setCharacter(calculatedChar);
-    saveCharacter(updatedChar);
+    saveCharacter(calculatedChar);
   };
 
   const calculateStatChange = (item: Equipment) => {

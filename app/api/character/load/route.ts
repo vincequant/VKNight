@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // 直接从云端加载角色，不需要设备ID
     const character = await loadCharacterFromCloud(characterType);
     
     return NextResponse.json({

@@ -10,6 +10,7 @@ import ETHDisplay from '@/components/ETHDisplay';
 import CloudSyncIndicator from '@/components/CloudSyncIndicator';
 import CharacterAvatar from '@/components/CharacterAvatar';
 import WorldMap from '@/components/WorldMap';
+import SaveLoadModal from '@/components/SaveLoadModal';
 import { migrateCharacterData } from '@/lib/characterMigration';
 import { ethToWei } from '@/utils/ethereum';
 import { deserializeCharacter, loadCharacterWithCloud, saveCharacter } from '@/utils/characterStorage';
@@ -21,11 +22,17 @@ export default function HubPage() {
   const [selectedArea, setSelectedArea] = useState<string>('森林');
   const [showCharacterPanel, setShowCharacterPanel] = useState(false);
   const [showWorldMap, setShowWorldMap] = useState(false);
+  const [showSaveLoad, setShowSaveLoad] = useState(false);
   const [currentUser, setCurrentUser] = useState<string>('');
 
   useEffect(() => {
+    console.log('HubPage mounted, showSaveLoad:', showSaveLoad);
     // Load character data
     const loadCharacterData = async () => {
+      // 清除本地缓存，确保从云端加载最新数据
+      localStorage.removeItem('character_josh');
+      localStorage.removeItem('character_abby');
+      
       // Check if there's saved character data
       const user = localStorage.getItem('currentUser') || 'josh';
       setCurrentUser(user);
@@ -53,7 +60,7 @@ export default function HubPage() {
           level: 1,
           experience: 0,
           expToNextLevel: 100,
-          eth: ethToWei(1),
+          eth: ethToWei(0.1),
           hp: 100,
           maxHp: 100,
           mp: 50,
@@ -181,6 +188,25 @@ export default function HubPage() {
     window.location.href = '/store';
   };
 
+  const handleLoad = async (saveId: string) => {
+    try {
+      const response = await fetch(`/api/saves/load?id=${saveId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // 保存加载的角色数据
+        await saveCharacter(data.character);
+        // 刷新页面以显示新数据
+        window.location.reload();
+      } else {
+        alert('加载存档失败: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Load error:', error);
+      alert('加载存档时出错');
+    }
+  };
+
   if (!character) return null;
 
   return (
@@ -272,7 +298,18 @@ export default function HubPage() {
               <CloudSyncIndicator />
               
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              {console.log('Rendering action buttons')}
+              <div className="flex gap-2 items-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowSaveLoad(true)}
+                  className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-white font-bold flex items-center gap-2 shadow-lg border-2 border-purple-500"
+                >
+                  <span className="text-xl">💾</span> 
+                  <span>存档</span>
+                </motion.button>
+                
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -564,6 +601,16 @@ export default function HubPage() {
           </>
         )}
       </main>
+
+      {/* Save/Load Modal */}
+      {showSaveLoad && (
+        <SaveLoadModal
+          isOpen={showSaveLoad}
+          onClose={() => setShowSaveLoad(false)}
+          character={character}
+          onLoad={handleLoad}
+        />
+      )}
     </div>
   );
 }

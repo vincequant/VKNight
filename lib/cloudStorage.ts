@@ -1,51 +1,16 @@
 import { Character } from '@/types/game';
 import { prisma } from './database';
-import { ethToWei } from '@/utils/ethereum';
-
-export function getDeviceId(): string {
-  if (typeof window === 'undefined') return '';
-  
-  let deviceId = localStorage.getItem('deviceId');
-  if (!deviceId) {
-    deviceId = crypto.randomUUID();
-    localStorage.setItem('deviceId', deviceId);
-  }
-  return deviceId;
-}
-
-export async function getOrCreateUser() {
-  const deviceId = getDeviceId();
-  if (!deviceId) return null;
-  
-  try {
-    let user = await prisma.user.findUnique({
-      where: { deviceId },
-    });
-    
-    if (!user) {
-      user = await prisma.user.create({
-        data: { deviceId },
-      });
-    }
-    
-    return user;
-  } catch (error) {
-    console.error('Error getting/creating user:', error);
-    return null;
-  }
-}
+import { findCharacterCompat, upsertCharacterCompat } from './database-compat';
 
 export async function saveCharacterToCloud(character: Character) {
   try {
-    const user = await getOrCreateUser();
-    if (!user) return;
-    
-    // Get owned equipment from localStorage
+    // 获取拥有的装备
     const ownedEquipmentKey = `ownedEquipment_${character.type}`;
-    const ownedEquipment = JSON.parse(localStorage.getItem(ownedEquipmentKey) || '[]');
+    const ownedEquipment = typeof window !== 'undefined' 
+      ? JSON.parse(localStorage.getItem(ownedEquipmentKey) || '[]')
+      : [];
     
     const characterData = {
-      userId: user.id,
       type: character.type,
       level: character.level,
       experience: character.experience,
@@ -64,18 +29,10 @@ export async function saveCharacterToCloud(character: Character) {
       stagesPaidFor: JSON.stringify(character.stagesPaidFor || []),
     };
     
-    await prisma.character.upsert({
-      where: {
-        userId_type: {
-          userId: user.id,
-          type: character.type,
-        },
-      },
-      update: characterData,
-      create: characterData,
-    });
+    // 使用兼容层进行upsert
+    await upsertCharacterCompat(characterData);
     
-    console.log('Character saved to cloud');
+    console.log(`Character ${character.type} saved to cloud`);
   } catch (error) {
     console.error('Error saving to cloud:', error);
   }
@@ -83,22 +40,8 @@ export async function saveCharacterToCloud(character: Character) {
 
 export async function loadCharacterFromCloud(characterType: string): Promise<Character | null> {
   try {
-    const user = await getOrCreateUser();
-    if (!user) return null;
-    
-    const dbCharacter = await prisma.character.findUnique({
-      where: {
-        userId_type: {
-          userId: user.id,
-          type: characterType,
-        },
-      },
-      include: {
-        weapon: true,
-        armor: true,
-        shield: true,
-      },
-    });
+    // 使用兼容层查找角色
+    const dbCharacter = await findCharacterCompat(characterType);
     
     if (!dbCharacter) return null;
     
@@ -111,6 +54,8 @@ export async function loadCharacterFromCloud(characterType: string): Promise<Cha
       eth: BigInt(dbCharacter.eth),
       hp: dbCharacter.baseHp,
       maxHp: dbCharacter.baseHp,
+      mp: dbCharacter.baseMp || 50,
+      maxMp: dbCharacter.baseMp || 50,
       attack: dbCharacter.baseAttack,
       defense: dbCharacter.baseDefense,
       baseHp: dbCharacter.baseHp,
@@ -122,8 +67,8 @@ export async function loadCharacterFromCloud(characterType: string): Promise<Cha
       stagesPaidFor: JSON.parse(dbCharacter.stagesPaidFor || '[]'),
     };
     
-    // Restore owned equipment to localStorage
-    if (dbCharacter.ownedEquipment) {
+    // 恢复拥有的装备到localStorage
+    if (dbCharacter.ownedEquipment && typeof window !== 'undefined') {
       const ownedEquipmentKey = `ownedEquipment_${characterType}`;
       localStorage.setItem(ownedEquipmentKey, dbCharacter.ownedEquipment);
     }
@@ -176,10 +121,67 @@ export async function loadCharacterFromCloud(characterType: string): Promise<Cha
       };
     }
     
-    console.log('Character loaded from cloud');
+    console.log(`Character ${characterType} loaded from cloud`);
     return character;
   } catch (error) {
     console.error('Error loading from cloud:', error);
+    return null;
+  }
+}
+
+// 创建角色备份
+export async function createCharacterBackup(character: Character, backupName: string) {
+  try {
+    await prisma.characterBackup.create({
+      data: {
+        characterType: character.type,
+        backupName,
+        backupData: JSON.stringify(character, (key, value) => {
+          if (typeof value === 'bigint') {
+            return value.toString();
+          }
+          return value;
+        }),
+      },
+    });
+    
+    console.log('Backup created successfully');
+  } catch (error) {
+    console.error('Error creating backup:', error);
+  }
+}
+
+// 获取角色备份列表
+export async function getCharacterBackups(characterType?: string) {
+  try {
+    const where = characterType ? { characterType } : {};
+    return await prisma.characterBackup.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  } catch (error) {
+    console.error('Error getting backups:', error);
+    return [];
+  }
+}
+
+// 恢复角色备份
+export async function restoreCharacterBackup(backupId: string): Promise<Character | null> {
+  try {
+    const backup = await prisma.characterBackup.findUnique({
+      where: { id: backupId },
+    });
+    
+    if (!backup) return null;
+    
+    const character = JSON.parse(backup.backupData);
+    character.eth = BigInt(character.eth);
+    
+    return character;
+  } catch (error) {
+    console.error('Error restoring backup:', error);
     return null;
   }
 }

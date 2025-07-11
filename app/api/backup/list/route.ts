@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { getOrCreateUser } from '@/lib/cloudStorage';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const characterType = searchParams.get('type');
     
-    const user = await getOrCreateUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 401 }
-      );
-    }
-    
     const backups = await prisma.characterBackup.findMany({
       where: {
-        userId: user.id,
         ...(characterType ? { characterType } : {}),
       },
       orderBy: {
