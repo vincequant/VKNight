@@ -27,6 +27,14 @@ export class QuestionGenerator {
       const single = Math.floor(Math.random() * 9) + 1; // 1-9
       num1 = double;
       num2 = single;
+    } else if (config?.minResult !== undefined && config?.maxResult !== undefined) {
+      // 按结果范围生成加法题
+      const targetSum = Math.floor(Math.random() * (config.maxResult - config.minResult + 1)) + config.minResult;
+      // 确保是双位数加法
+      const minAddend = Math.max(10, Math.floor(targetSum * 0.3));
+      const maxAddend = Math.min(targetSum - 10, Math.floor(targetSum * 0.7));
+      num1 = Math.floor(Math.random() * (maxAddend - minAddend + 1)) + minAddend;
+      num2 = targetSum - num1;
     } else if (config?.minNum !== undefined && config?.maxNum !== undefined) {
       // 特殊处理forest-1的Josh版本：结果在20-100之间
       if (config.minNum === 20 && config.maxNum === 100) {
@@ -91,6 +99,17 @@ export class QuestionGenerator {
       // 双位数(10-20)-个位数
       num1 = Math.floor(Math.random() * 11) + 10; // 10-20
       num2 = Math.floor(Math.random() * Math.min(9, num1 - 1)) + 1; // 1-9, 确保结果为正
+    } else if (config?.minResult !== undefined && config?.maxResult !== undefined) {
+      // 按结果范围生成减法题（结果在30-100之间）
+      const targetDiff = Math.floor(Math.random() * (config.maxResult - config.minResult + 1)) + config.minResult;
+      // 生成双位数减法，确保num1是双位数
+      num2 = Math.floor(Math.random() * (99 - targetDiff - 10)) + 10; // num2至少为10
+      num1 = targetDiff + num2; // 确保结果是targetDiff
+      // 如果num1超过99，调整
+      if (num1 > 99) {
+        num1 = 99;
+        num2 = num1 - targetDiff;
+      }
     } else if (maxNum !== undefined && !minNum) {
       // 如果只设置了maxNum（用于单位数减法）
       num1 = Math.floor(Math.random() * (maxNum - 1)) + 2; // 2到maxNum

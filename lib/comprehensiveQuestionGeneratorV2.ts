@@ -65,29 +65,27 @@ const STAGE_CONFIGS: Record<string, StageConfig> = {
     ],
     difficultyOverride: 'EASY'
   },
-  // 第二关 - Josh版本：双位数减法、复杂加法、简单乘法、逻辑题
+  // 第二关 - Josh版本：双位数减法(结果30-100)、个位数乘法、双位数加法(结果100-200)
   'forest-2': {
     questionTypes: [
-      // 双位数减法
-      { type: 'subtraction', weight: 30, config: { minNum: 10, maxNum: 99 } },
-      // 更复杂的双位数加法 (包括进位)
-      { type: 'addition', weight: 25, config: { minNum: 20, maxNum: 99, carryOver: true } },
-      // 简单乘法 (1-5的乘法)
-      { type: 'multiplication', weight: 25, config: { maxNum: 5 } },
-      // 逻辑推理题
-      { type: 'logic', weight: 20, minDifficulty: 'EASY', maxDifficulty: 'EASY' }
+      // 双位数减法(结果30-100)
+      { type: 'subtraction', weight: 35, config: { minResult: 30, maxResult: 100 } },
+      // 个位数乘法
+      { type: 'multiplication', weight: 35, config: { maxNum: 9 } },
+      // 双位数加法(结果100-200)
+      { type: 'addition', weight: 30, config: { minResult: 100, maxResult: 200 } }
     ],
-    difficultyOverride: 'EASY'
+    difficultyOverride: 'MEDIUM'
   },
-  // 第二关 - Abby版本：简单减法、基础乘法
+  // 第二关 - Abby版本：更简单的题目
   'forest-2-abby': {
     questionTypes: [
       // 20以内的减法
       { type: 'subtraction', weight: 35, config: { maxNum: 20 } },
-      // 双位数加法 (10-50)
-      { type: 'addition', weight: 35, config: { minNum: 10, maxNum: 50 } },
-      // 简单乘法 (1-3的乘法)
-      { type: 'multiplication', weight: 30, config: { maxNum: 3 } }
+      // 双位数加法(结果20-50)
+      { type: 'addition', weight: 35, config: { minResult: 20, maxResult: 50 } },
+      // 简单乘法 (1-5的乘法)
+      { type: 'multiplication', weight: 30, config: { maxNum: 5 } }
     ],
     difficultyOverride: 'EASY'
   },

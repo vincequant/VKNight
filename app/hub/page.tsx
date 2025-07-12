@@ -494,8 +494,6 @@ export default function HubPage() {
 
                   {/* Stage Info */}
                   <div className="p-4">
-                    <p className="text-gray-300 text-sm mb-3">{stage.description}</p>
-                    
                     {/* Requirements */}
                     <div className="flex items-center gap-2 text-sm mb-3">
                       <span className="text-gray-400">需要等级:</span>
@@ -543,14 +541,24 @@ export default function HubPage() {
                         <div className="mt-3 pt-3 border-t border-gray-700">
                           <p className="text-xs text-gray-400 mb-2">题型标签:</p>
                           <div className="flex flex-wrap gap-1">
-                            {labels.map((type, i) => (
-                              <span 
-                                key={i} 
-                                className="bg-gray-700 text-xs px-2 py-1 rounded-full text-yellow-300"
-                              >
-                                {type}
-                              </span>
-                            ))}
+                            {labels.map((type, i) => {
+                              const [label, difficulty] = type.split('|');
+                              const difficultyColors = {
+                                '简单': 'bg-green-600 text-green-100',
+                                '正常': 'bg-blue-600 text-blue-100',
+                                '难': 'bg-red-600 text-red-100'
+                              };
+                              const colorClass = difficultyColors[difficulty] || 'bg-gray-700 text-yellow-300';
+                              
+                              return (
+                                <span 
+                                  key={i} 
+                                  className={`text-xs px-2 py-1 rounded-full ${colorClass}`}
+                                >
+                                  {label}{difficulty && ` (${difficulty})`}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       );
