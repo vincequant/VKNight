@@ -1,6 +1,7 @@
-import { prisma } from './database';
+import { getPrismaClient } from './prisma';
 
 async function detectDatabaseType(): Promise<'sqlite' | 'postgresql'> {
+  const prisma = getPrismaClient();
   try {
     // 尝试运行PostgreSQL特有的查询
     await prisma.$queryRaw`SELECT version()`;
@@ -11,6 +12,7 @@ async function detectDatabaseType(): Promise<'sqlite' | 'postgresql'> {
 }
 
 export async function ensureCharacterBackupTable() {
+  const prisma = getPrismaClient();
   try {
     // 尝试查询CharacterBackup表
     await prisma.characterBackup.findFirst();

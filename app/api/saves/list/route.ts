@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/database';
+import { getPrismaClient } from '@/lib/prisma';
 import { ensureCharacterBackupTable } from '@/lib/ensureDatabaseCompat';
 
 export async function GET(request: NextRequest) {
   try {
+    // 获取 Prisma 客户端实例
+    const prisma = getPrismaClient();
+    
     // 确保表存在
     await ensureCharacterBackupTable();
     
