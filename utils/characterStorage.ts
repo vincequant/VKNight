@@ -56,7 +56,7 @@ export async function saveCharacter(character: Character, createBackupFlag: bool
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(character),
+      body: serializeCharacter(character),
     });
     
     if (!response.ok) {

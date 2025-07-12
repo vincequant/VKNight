@@ -29,9 +29,8 @@ export default function HubPage() {
     console.log('HubPage mounted, showSaveLoad:', showSaveLoad);
     // Load character data
     const loadCharacterData = async () => {
-      // 清除本地缓存，确保从云端加载最新数据
-      localStorage.removeItem('character_josh');
-      localStorage.removeItem('character_abby');
+      // Note: We now keep local cache and cloud sync will handle updates
+      // This ensures battle data persists when returning from game
       
       // Check if there's saved character data
       const user = localStorage.getItem('currentUser') || 'josh';
